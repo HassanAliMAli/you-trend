@@ -1,110 +1,43 @@
-import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement,
-} from 'chart.js';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import React, { useEffect, useRef } from 'react';
+import { Chart, registerables } from 'chart.js';
+import { WordCloudController, WordElement } from 'chartjs-chart-wordcloud';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement
-);
+// Register Chart.js components and controllers, including WordCloud
+Chart.register(...registerables, WordCloudController, WordElement);
 
-// Default styling options
-const defaultOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'top',
-      labels: {
-        color: 'rgba(107, 114, 128, 1)', // text-gray-500
-        font: {
-          size: 12,
-        },
-      },
-    },
-    title: {
-      display: true,
-      text: 'Chart Title',
-      color: 'rgba(17, 24, 39, 1)', // text-gray-900
-      font: {
-        size: 16,
-        weight: 'bold',
-      },
-    },
-    tooltip: {
-      mode: 'index',
-      intersect: false,
-    },
-  },
-};
+const ChartComponent = ({ type, data, options, chartId }) => {
+  const chartRef = useRef(null); // Ref for the canvas element
+  const chartInstance = useRef(null); // Ref for the chart instance
 
-/**
- * A flexible chart component supporting Bar, Pie, and Line charts
- * @param {Object} props Component props
- * @param {string} props.type - Chart type: 'bar', 'pie', or 'line'
- * @param {Object} props.data - Data for the chart
- * @param {Object} props.options - Chart options (merged with defaults)
- * @param {string} props.title - Chart title
- * @param {number} props.height - Chart height in pixels (default: 300)
- */
-const ChartComponent = ({ type = 'bar', data, options = {}, title = 'Chart', height = 300 }) => {
-  // Merge with default options
-  const chartOptions = {
-    ...defaultOptions,
-    ...options,
-    plugins: {
-      ...defaultOptions.plugins,
-      ...options.plugins,
-      title: {
-        ...defaultOptions.plugins.title,
-        ...(options.plugins?.title || {}),
-        text: title,
-      },
-    },
-  };
-
-  const chartStyle = {
-    height: `${height}px`,
-    width: '100%',
-  };
-
-  // Render different chart types based on the type prop
-  const renderChart = () => {
-    switch (type.toLowerCase()) {
-      case 'bar':
-        return <Bar data={data} options={chartOptions} />;
-      case 'pie':
-        return <Pie data={data} options={chartOptions} />;
-      case 'line':
-        return <Line data={data} options={chartOptions} />;
-      default:
-        return <Bar data={data} options={chartOptions} />;
+  useEffect(() => {
+    // Destroy existing chart instance before creating a new one
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
     }
-  };
 
-  return (
-    <div className="chart-container" style={chartStyle}>
-      {renderChart()}
-    </div>
-  );
+    // Create new chart instance if canvas ref and data are available
+    if (chartRef.current && data) {
+      const ctx = chartRef.current.getContext('2d');
+      chartInstance.current = new Chart(ctx, {
+        type: type, // e.g., 'bar', 'pie', 'line', 'wordCloud'
+        data: data, // Chart.js data object
+        options: options, // Chart.js options object
+      });
+    }
+
+    // Cleanup: Destroy chart instance when component unmounts or dependencies change
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+        chartInstance.current = null; // Ensure it's cleaned up for next render
+      }
+    };
+  }, [type, data, options]); // Re-create chart if type, data, or options change
+
+  // Generate a unique ID for the canvas if not provided, to avoid conflicts
+  const canvasId = chartId || `chart-${Math.random().toString(36).substr(2, 9)}`;
+
+  return <canvas ref={chartRef} id={canvasId} aria-label={`${type} chart`}></canvas>;
 };
 
 export default ChartComponent;
