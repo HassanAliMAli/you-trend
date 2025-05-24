@@ -81,3 +81,4 @@ uvicorn main:app --reload
 - 2024-07-26 15:00 PKT: [Task 3.8] Verified existing Tailwind CSS setup (client/src/index.css and tailwind.config.js).
 - 2024-07-26 15:10 PKT: [Task 4.1] Added initial backend unit tests in server/tests/test_api.py and updated requirements.
 - 2024-07-26 15:15 PKT: [Task 4.2] Added initial frontend unit tests for HomePage in client/src/__tests__/Home.test.js.
+- 2024-07-26 15:20 PKT: [Task 5.1] Configured Vercel deployment for client in client/vercel.json.
