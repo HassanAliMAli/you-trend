@@ -76,3 +76,4 @@ uvicorn main:app --reload
 - 2025-05-22 06:26 PKT: [Task 3.1] Set up React app with routing in App.js
 - 2025-05-22 06:27 PKT: [Task 3.2] Added responsive navigation bar with theme toggle in Navbar.js
 - 2025-05-22 06:28 PKT: [Task 3.3] Implemented HomePage with search form and feature overview
+- 2024-07-26 14:50 PKT: [Task 3.6] Implemented Settings page for API key and quota warnings in Settings.js
