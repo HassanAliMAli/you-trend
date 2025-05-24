@@ -79,3 +79,4 @@ uvicorn main:app --reload
 - 2024-07-26 14:50 PKT: [Task 3.6] Implemented Settings page for API key and quota warnings in Settings.js
 - 2024-07-26 14:55 PKT: [Task 3.7] Added reusable chart component in ChartComponent.js
 - 2024-07-26 15:00 PKT: [Task 3.8] Verified existing Tailwind CSS setup (client/src/index.css and tailwind.config.js).
+- 2024-07-26 15:10 PKT: [Task 4.1] Added initial backend unit tests in server/tests/test_api.py and updated requirements.
