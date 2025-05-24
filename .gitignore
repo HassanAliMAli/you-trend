@@ -1,0 +1,201 @@
+# Dependencies
+/node_modules
+/client/node_modules
+/.pnp
+.pnp.js
+/server/venv
+/server/env
+/server/__pycache__/
+/server/**/__pycache__/
+
+# Testing
+/coverage
+/server/.pytest_cache/
+
+# Production
+/build
+/client/build
+/client/dist
+/server/dist
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+/server/.env
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+/.idea
+/.vscode
+*.swp
+*.swo
+.DS_Store
+.project
+.classpath
+.settings/
+
+# Cache
+.eslintcache
+.sass-cache/
+/.cache
+.cache/
+/__pycache__/
+*.py[cod]
+*$py.class
+client/node_modules/.cache/
+client/node_modules/.cache/default-development/
+frontend-only/client/node_modules/.cache/
+
+# Local Redis data
+dump.rdb
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+/tmp
+/temp
+
+# System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+PRD.md
+TASKS.md
+
+# Python specific
+*.so
+.Python
+/server/.Python
+/server/develop-eggs/
+/server/downloads/
+/server/eggs/
+/server/lib/
+/server/lib64/
+/server/parts/
+/server/sdist/
+/server/var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+/server/venv/
+/server/.venv/
+/server/ENV/
+/server/env/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.hypothesis/
+.pytest_cache/
+celerybeat-schedule
+*.mo
+*.pot
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Compiled files
+*.o
+*.a
+*.out
+*.exe
+*.dll
+*.obj
+*.ilk
+*.pdb
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Other
+.tmp/
+temp/
+tmp/
+*.bak
+*.gho
+*.orig
+*.sublime-workspace
+*.sublime-project
+*.komodoproject
+*.komodo-workspace
