@@ -83,3 +83,4 @@ uvicorn main:app --reload
 - 2024-07-26 15:15 PKT: [Task 4.2] Added initial frontend unit tests for HomePage in client/src/__tests__/Home.test.js.
 - 2024-07-26 15:20 PKT: [Task 5.1] Configured Vercel deployment for client in client/vercel.json.
 - 2024-07-26 15:30 PKT: [Task 5.2] Configured Render deployment for server in server/render.yml.
+- 2024-07-26 15:35 PKT: [Task 5.3] Documented frontend deployment to Vercel (manual user step).
