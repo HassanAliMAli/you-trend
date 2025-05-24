@@ -344,7 +344,7 @@ USER_GUIDE.md: No update.
 Phase 6: Documentation
 Task 6.1: Create API Documentation
 
- Create /docs/API.md.
+ [x] Create /docs/API.md.
 Description: Document backend endpoints (/trends, /compare, /reports) with parameters, responses, and examples.
 Dependencies: Task 2.5.
 Updates:
