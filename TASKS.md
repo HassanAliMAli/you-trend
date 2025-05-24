@@ -332,8 +332,8 @@ USER_GUIDE.md: Add note: "Access the app via the Vercel-provided URL."
 
 Task 5.4: Deploy Backend to Render
 
- Deploy /server to Render.
-Description: Push backend code to a Git repository, link to Render, configure Redis, and deploy. Verify API endpoints.
+ [x] Deploy /server to Render.
+Description: Push backend code to a Git repository, link to Render, configure Redis, and deploy. Verify API endpoints. (Manual deployment step by user)
 Dependencies: Task 5.2.
 Updates:
 README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.4] Deployed backend and Redis to Render.
