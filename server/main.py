@@ -61,12 +61,12 @@ app.include_router(reports_router, prefix="/api")
 # Serve static files for the React frontend
 # This assumes your React app is built into the `client/build` directory
 # Adjust the directory path if your build output is elsewhere
-app.mount("/static_assets", StaticFiles(directory="../client/build/static"), name="static_assets")
+app.mount("/static_assets", StaticFiles(directory="client/build/static"), name="static_assets")
 
 @app.get("/{catchall:path}", include_in_schema=False)
 async def serve_react_app(request: Request):
     """Serves the React app's index.html for any non-API routes."""
-    return FileResponse("../client/build/index.html")
+    return FileResponse("client/build/index.html")
 
 # Root endpoint now serves the React App, API docs are at /api/docs
 # The @app.get("/") for API info is effectively replaced by serving index.html

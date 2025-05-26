@@ -2,7 +2,7 @@
 set -e
 
 # Go to the client directory
-cd ../client
+cd client
 
 # Install Node.js and npm if not present (Heroku Python buildpack provides nodeenv)
 if ! command -v npm &> /dev/null; then
@@ -13,7 +13,4 @@ fi
 
 # Install frontend dependencies and build
 npm install
-npm run build
-
-# Return to the server directory
-cd ../server 
+npm run build 
