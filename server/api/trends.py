@@ -29,6 +29,7 @@ class TrendsResponse(BaseModel):
 
 @router.get("", response_model=TrendsResponse)
 async def get_trends(
+    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
     query: str = "",
     category: Optional[str] = None,
     country: str = "PK",
@@ -46,12 +47,15 @@ async def get_trends(
     - **max_results**: Maximum number of results to return (default: 10, max: 50)
     - **order**: Sort order ('viewCount', 'relevance', 'rating', 'date')
     """
+    if not api_key:
+        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
         # 1. Fetch videos based on query or trending
         videos = []
         if query:
             # Search videos based on query
             videos = youtube_api.search_videos(
+                api_key=api_key,
                 query=query,
                 max_results=max_results,
                 country=country,
@@ -61,6 +65,7 @@ async def get_trends(
         else:
             # Get trending videos
             videos = youtube_api.get_trending_videos(
+                api_key=api_key,
                 region_code=country,
                 category_id=category,
                 max_results=max_results
@@ -91,6 +96,7 @@ async def get_trends(
 
 @router.get("/channels", response_model=TrendsResponse)
 async def get_trending_channels(
+    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
     query: str = "",
     country: str = "PK",
     max_results: int = 10
@@ -102,9 +108,12 @@ async def get_trending_channels(
     - **country**: Country code (e.g., 'PK', 'US')
     - **max_results**: Maximum number of results to return (default: 10, max: 50)
     """
+    if not api_key:
+        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
         # 1. Search for channels
         channels = youtube_api.search_channels(
+            api_key=api_key,
             query=query,
             max_results=max_results,
             region_code=country
@@ -116,6 +125,7 @@ async def get_trending_channels(
             channel_id = channel.get('id')
             if channel_id:
                 videos = youtube_api.get_channel_videos(
+                    api_key=api_key,
                     channel_id=channel_id,
                     max_results=10,  # Get 10 videos per channel
                     order="viewCount"  # Get most viewed videos
@@ -145,6 +155,7 @@ async def get_trending_channels(
 
 @router.get("/categories", response_model=TrendsResponse)
 async def get_video_categories(
+    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
     country: str = "PK"
 ):
     """
@@ -152,8 +163,10 @@ async def get_video_categories(
     
     - **country**: Country code (e.g., 'PK', 'US')
     """
+    if not api_key:
+        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
-        categories = youtube_api.get_video_categories(region_code=country)
+        categories = youtube_api.get_video_categories(api_key=api_key, region_code=country)
         
         return {
             "status": "success",

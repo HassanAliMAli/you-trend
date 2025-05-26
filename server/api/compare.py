@@ -30,7 +30,8 @@ async def compare_niches(
     niches: str = Query(..., description="Comma-separated list of niches to compare"),
     country: str = "PK",
     max_results: int = 10,
-    order: str = "viewCount"
+    order: str = "viewCount",
+    api_key: str = Query(..., description="YouTube Data API v3 key (required)")
 ):
     """
     Compare different niches based on their YouTube metrics
@@ -40,6 +41,8 @@ async def compare_niches(
     - **max_results**: Maximum number of results per niche (default: 10, max: 50)
     - **order**: Sort order for videos ('viewCount', 'relevance', 'rating', 'date')
     """
+    if not api_key:
+        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
         # Parse niches from comma-separated string
         niche_list = [niche.strip() for niche in niches.split(',') if niche.strip()]
@@ -55,6 +58,7 @@ async def compare_niches(
         niches_data = {}
         for niche in niche_list:
             videos = youtube_api.search_videos(
+                api_key=api_key,
                 query=niche,
                 max_results=max_results,
                 country=country,
@@ -78,7 +82,8 @@ async def compare_niches(
 async def get_niche_metrics(
     niche: str,
     country: str = "PK",
-    max_results: int = 10
+    max_results: int = 10,
+    api_key: str = Query(..., description="YouTube Data API v3 key (required)")
 ):
     """
     Get detailed metrics for a specific niche
@@ -87,9 +92,12 @@ async def get_niche_metrics(
     - **country**: Country code (e.g., 'PK', 'US')
     - **max_results**: Maximum number of videos to analyze (default: 10, max: 50)
     """
+    if not api_key:
+        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
         # Get videos for the niche
         videos = youtube_api.search_videos(
+            api_key=api_key,
             query=niche,
             max_results=max_results,
             country=country,
@@ -98,12 +106,14 @@ async def get_niche_metrics(
         
         # Get trending videos in the country for comparison
         trending_videos = youtube_api.get_trending_videos(
+            api_key=api_key,
             region_code=country,
             max_results=max_results
         )
         
         # Get channels related to the niche
         channels = youtube_api.search_channels(
+            api_key=api_key,
             query=niche,
             max_results=max_results,
             region_code=country

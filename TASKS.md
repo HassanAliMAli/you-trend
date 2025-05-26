@@ -34,10 +34,13 @@ Append new tasks to the "Future Tasks" section below, checkmark them upon comple
 
 Project Structure
 
-/client: React frontend (Vercel-hosted).
-/server: FastAPI backend and Redis (Render-hosted).
+/client: React frontend.
+/server: FastAPI backend and Redis.
+(Entire application hosted on Heroku, with Redis as an add-on)
 /docs: Documentation (TASKS.md, USER_GUIDE.md, API.md, DEVELOPMENT.md).
 /README.md: Project overview and change log (root).
+/.buildpacks: Heroku buildpack configuration.
+/Procfile: Heroku process file (root level).
 
 Tasks
 Phase 1: Project Setup
@@ -296,55 +299,39 @@ USER_GUIDE.md: No update.
 
 
 
-Phase 5: Deployment
-Task 5.1: Configure Vercel
+Phase 5: Deployment (Unified Heroku)
+Task 5.1: Configure Heroku Full-Stack Deployment
 
- [x] Create /client/vercel.json.
-Description: Configure Vercel hosting with build settings and routes for the React app.
-Dependencies: Task 3.1.
+ [x] Create root Procfile for Heroku (moved from /server).
+ [x] Create root .buildpacks file (nodejs and python).
+ [x] Update FastAPI server (/server/main.py) to serve static frontend files.
+ [x] Ensure client build script (`npm run build` in /client/package.json) outputs to a known directory (e.g., /client/build).
+ [x] Remove /client/vercel.json if it exists.
+Description: Configure the project for a unified Heroku deployment, where the Python backend serves the React frontend.
+Dependencies: Task 2.5, Task 3.1.
 Updates:
-README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.1] Configured Vercel hosting in vercel.json.
+README.md: Add change log: YYYY-MM-DD HH:MM PKT: [Task 5.1] Configured unified Heroku deployment.
 USER_GUIDE.md: No update.
 
+Task 5.2: N/A (Replaced by Task 5.1)
 
+Task 5.3: N/A (Replaced by Task 5.1)
 
-Task 5.2: Configure Render
+Task 5.4: Deploy Full Application to Heroku
 
- [x] Create /server/render.yml.
-Description: Configure Render hosting for FastAPI and Redis services.
-Dependencies: Task 2.5.
-Updates:
-README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.2] Configured Render hosting in render.yml.
-USER_GUIDE.md: No update.
-
-
-
-Task 5.3: Deploy Frontend to Vercel
-
- [x] Deploy /client to Vercel.
-Description: Push frontend code to a Git repository, link to Vercel, and deploy. Verify app accessibility.
+ [x] Deploy the entire application (frontend and backend) to Heroku.
+Description: Push code to a Git repository, link to Heroku, configure Redis add-on, buildpacks, and deploy. Verify app accessibility and API endpoints.
 Dependencies: Task 5.1.
 Updates:
-README.md: Add change log: YYYY-MM-DD HH:MM PKT: [Task 5.3] Deployed frontend to Vercel.
-USER_GUIDE.md: Add note: "Access the app via the Vercel-provided URL."
-
-
-
-Task 5.4: Deploy Backend to Render
-
- Deploy /server to Render.
-Description: Push backend code to a Git repository, link to Render, configure Redis, and deploy. Verify API endpoints.
-Dependencies: Task 5.2.
-Updates:
-README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.4] Deployed backend and Redis to Render.
-USER_GUIDE.md: No update.
+README.md: Add change log: YYYY-MM-DD HH:MM PKT: [Task 5.4] Deployed full application to Heroku.
+USER_GUIDE.md: Add note: "Access the app via the Heroku-provided URL."
 
 
 
 Phase 6: Documentation
 Task 6.1: Create API Documentation
 
- Create /docs/API.md.
+ [x] Create /docs/API.md.
 Description: Document backend endpoints (/trends, /compare, /reports) with parameters, responses, and examples.
 Dependencies: Task 2.5.
 Updates:
@@ -355,7 +342,7 @@ USER_GUIDE.md: No update.
 
 Task 6.2: Create Development Documentation
 
- Create /docs/DEVELOPMENT.md.
+ [x] Create /docs/DEVELOPMENT.md.
 Description: Document project structure, file purposes, and coding conventions.
 Dependencies: Task 1.1.
 Updates:
@@ -366,7 +353,7 @@ USER_GUIDE.md: No update.
 
 Task 6.3: Create User Guide
 
- Create /docs/USER_GUIDE.md.
+ [x] Create /docs/USER_GUIDE.md.
 Description: Write user-facing documentation:
 Overview: Purpose and features of YouTrend.
 Usage: Instructions for keyword input, filters, results, reports, API key, and quota management.
@@ -384,16 +371,16 @@ USER_GUIDE.md: Initialize with full documentation and add change log: 2025-05-17
 Phase 7: Finalization
 Task 7.1: Verify Functionality
 
- Test all features (filters, results, reports, deployments).
+ [x] Test all features (filters, results, reports, deployments).
 Description: Manually test:
 Keyword search with filters (e.g., Gaming, Pakistan, last 30 days).
 Results tabs (channels, videos, topics, comparisons).
 Report downloads (TXT, CSV, XLSX, PDF).
 API key input and quota warnings.
-Vercel/Render accessibility.
+Vercel/Heroku accessibility.
 
 
-Dependencies: Tasks 5.3, 5.4.
+Dependencies: Tasks 5.4.
 Updates:
 README.md: Add change log: 2025-05-17 03:05 PKT: [Task 7.1] Verified all app functionality.
 USER_GUIDE.md: No update.
@@ -402,7 +389,7 @@ USER_GUIDE.md: No update.
 
 Task 7.2: Optimize Performance
 
- Optimize API queries and frontend bundle.
+ [x] Optimize API queries and frontend bundle.
 Description: Minimize API calls (e.g., cache all queries), compress React bundle, and ensure response times (<5s uncached, <2s cached).
 Dependencies: Task 7.1.
 Updates:
@@ -413,7 +400,7 @@ USER_GUIDE.md: No update.
 
 Task 7.3: Finalize Documentation
 
- Review and polish all documentation (README.md, API.md, DEVELOPMENT.md, USER_GUIDE.md).
+ [x] Review and polish all documentation (README.md, API.md, DEVELOPMENT.md, USER_GUIDE.md).
 Description: Ensure clarity, fix typos, and verify links/references.
 Dependencies: Tasks 1.2, 6.1–6.3.
 Updates:

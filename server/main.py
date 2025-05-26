@@ -8,7 +8,7 @@ import os
 from typing import Dict, Any
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
@@ -53,30 +53,23 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     )
 
 # Include API routers
-app.include_router(status_router)
-app.include_router(trends_router)
-app.include_router(compare_router)
-app.include_router(reports_router)
+app.include_router(status_router, prefix="/api")
+app.include_router(trends_router, prefix="/api")
+app.include_router(compare_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
 
-# Serve static files (for API documentation)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Serve static files for the React frontend
+# This assumes your React app is built into the `client/build` directory
+# Adjust the directory path if your build output is elsewhere
+app.mount("/static_assets", StaticFiles(directory="../client/build/static"), name="static_assets")
 
-# Root endpoint redirects to API documentation
-@app.get("/")
-async def root() -> Dict[str, Any]:
-    """Root endpoint that provides basic API information"""
-    return {
-        "name": "TubeTrends API",
-        "version": "1.0.0",
-        "description": "API for analyzing YouTube trends and generating insights",
-        "documentation": "/api/docs",
-        "endpoints": {
-            "status": "/api/status",
-            "trends": "/api/trends",
-            "compare": "/api/compare",
-            "reports": "/api/reports"
-        }
-    }
+@app.get("/{catchall:path}", include_in_schema=False)
+async def serve_react_app(request: Request):
+    """Serves the React app's index.html for any non-API routes."""
+    return FileResponse("../client/build/index.html")
+
+# Root endpoint now serves the React App, API docs are at /api/docs
+# The @app.get("/") for API info is effectively replaced by serving index.html
 
 if __name__ == "__main__":
     import uvicorn
