@@ -322,18 +322,18 @@ USER_GUIDE.md: No update.
 Task 5.3: Deploy Frontend to Vercel
 
  [x] Deploy /client to Vercel.
-Description: Push frontend code to a Git repository, link to Vercel, and deploy. Verify app accessibility. (Manual deployment step by user)
+Description: Push frontend code to a Git repository, link to Vercel, and deploy. Verify app accessibility.
 Dependencies: Task 5.1.
 Updates:
-README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.3] Deployed frontend to Vercel.
+README.md: Add change log: YYYY-MM-DD HH:MM PKT: [Task 5.3] Deployed frontend to Vercel.
 USER_GUIDE.md: Add note: "Access the app via the Vercel-provided URL."
 
 
 
 Task 5.4: Deploy Backend to Render
 
- [x] Deploy /server to Render.
-Description: Push backend code to a Git repository, link to Render, configure Redis, and deploy. Verify API endpoints. (Manual deployment step by user)
+ Deploy /server to Render.
+Description: Push backend code to a Git repository, link to Render, configure Redis, and deploy. Verify API endpoints.
 Dependencies: Task 5.2.
 Updates:
 README.md: Add change log: 2025-05-17 03:05 PKT: [Task 5.4] Deployed backend and Redis to Render.
@@ -344,7 +344,7 @@ USER_GUIDE.md: No update.
 Phase 6: Documentation
 Task 6.1: Create API Documentation
 
- [x] Create /docs/API.md.
+ Create /docs/API.md.
 Description: Document backend endpoints (/trends, /compare, /reports) with parameters, responses, and examples.
 Dependencies: Task 2.5.
 Updates:
