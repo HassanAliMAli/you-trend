@@ -6,11 +6,14 @@ and generate insights for channels, videos, and topics.
 """
 
 import re
-from typing import Dict, List, Any, Tuple, Optional
+import logging
+from typing import Dict, List, Any, Tuple
 from collections import Counter, defaultdict
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def calculate_video_score(video: Dict[str, Any]) -> float:
     """
@@ -57,14 +60,14 @@ def calculate_video_score(video: Dict[str, Any]) -> float:
         # Apply weights
         weighted_score = (
             0.4 * normalized_views +
-            0.4 * min(engagement_rate * 100, 1) +  # Cap at 1 (or 100%)
+            0.4 * min(engagement_rate, 1.0) +  # Corrected: Use engagement_rate (0-1 ratio), cap at 1.0
             0.2 * recency_score
         )
         
         return weighted_score
     
     except Exception as e:
-        print(f"Error calculating video score: {e}")
+        logging.error(f"Error calculating video score for video ID {video.get('id', 'unknown')}: {e}", exc_info=True)
         return 0.0
 
 def calculate_channel_score(channel: Dict[str, Any], videos: List[Dict[str, Any]] = None) -> float:
@@ -128,7 +131,7 @@ def calculate_channel_score(channel: Dict[str, Any], videos: List[Dict[str, Any]
         return weighted_score
     
     except Exception as e:
-        print(f"Error calculating channel score: {e}")
+        logging.error(f"Error calculating channel score for channel ID {channel.get('id', 'unknown')}: {e}", exc_info=True)
         return 0.0
 
 def extract_topics_from_videos(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -237,8 +240,8 @@ def generate_video_ideas(topics: List[Dict[str, Any]], videos: List[Dict[str, An
     durations = []
     for idx in high_performing_idx:
         try:
-            video = videos[idx]
-            duration = video.get('contentDetails', {}).get('duration', '')
+            video_item = videos[idx]
+            duration = video_item.get('contentDetails', {}).get('duration', '')
             if duration:
                 # Convert ISO 8601 duration to minutes
                 minutes_match = re.search(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
@@ -248,8 +251,10 @@ def generate_video_ideas(topics: List[Dict[str, Any]], videos: List[Dict[str, An
                     secs = int(minutes_match.group(3) or 0)
                     total_minutes = hours * 60 + mins + secs / 60
                     durations.append(total_minutes)
-        except Exception:
-            pass
+        except Exception as e:
+            video_id_for_error = video_item.get('id', 'unknown') if 'video_item' in locals() else 'unknown'
+            logging.warning(f"Error parsing duration for video ID {video_id_for_error} (duration string: {duration}): {e}")
+            # Continue, as one video failing duration parsing shouldn't stop all idea generation
     
     # Determine optimal duration range
     avg_duration = sum(durations) / len(durations) if durations else 10

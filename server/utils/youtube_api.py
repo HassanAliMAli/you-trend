@@ -5,14 +5,21 @@ This module provides functions to interact with the YouTube Data API v3,
 fetching channels, videos, and search results with quota optimization.
 """
 
-import os
-from typing import Dict, List, Optional, Any, Union
+# import os # Unused
+from typing import Dict, List, Optional # Removed Any, Union
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # Load environment variables
 load_dotenv()
+
+class YouTubeApiError(Exception):
+    """Custom exception for YouTube API errors."""
+    def __init__(self, detail: str, status_code: int = 500):
+        self.detail = detail
+        self.status_code = status_code
+        super().__init__(self.detail)
 
 def get_youtube_client(api_key: str):
     """
@@ -84,8 +91,9 @@ def search_videos(api_key: str, query: str, max_results: int = 10, country: str 
         return videos_response.get('items', [])
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def get_channel_details(api_key: str, channel_ids: List[str]) -> List[Dict]:
     """
@@ -113,8 +121,9 @@ def get_channel_details(api_key: str, channel_ids: List[str]) -> List[Dict]:
         return channels_response.get('items', [])
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def get_trending_videos(api_key: str, region_code: str = 'PK', category_id: str = None, 
                         max_results: int = 10) -> List[Dict]:
@@ -151,8 +160,9 @@ def get_trending_videos(api_key: str, region_code: str = 'PK', category_id: str 
         return trending_response.get('items', [])
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def search_channels(api_key: str, query: str, max_results: int = 10, region_code: str = None) -> List[Dict]:
     """
@@ -197,8 +207,9 @@ def search_channels(api_key: str, query: str, max_results: int = 10, region_code
         return get_channel_details(api_key, channel_ids)
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def get_video_categories(api_key: str, region_code: str = 'PK') -> List[Dict]:
     """
@@ -222,8 +233,9 @@ def get_video_categories(api_key: str, region_code: str = 'PK') -> List[Dict]:
         return categories_response.get('items', [])
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def get_channel_videos(api_key: str, channel_id: str, max_results: int = 10, 
                       order: str = 'date') -> List[Dict]:
@@ -268,8 +280,9 @@ def get_channel_videos(api_key: str, channel_id: str, max_results: int = 10,
         return videos_response.get('items', [])
     
     except HttpError as e:
-        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
-        return []
+        # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
+        # return []
+        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
 def estimate_quota_cost(operation: str, items_count: int = 1) -> int:
     """

@@ -5,7 +5,7 @@ FastAPI implementation for the TubeTrends application that provides YouTube tren
 """
 
 import os
-from typing import Dict, Any
+# from typing import Dict, Any # Removed unused Dict, Any
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
@@ -17,6 +17,7 @@ from api.trends import router as trends_router
 from api.compare import router as compare_router
 from api.reports import router as reports_router
 from api.status import router as status_router
+from utils.youtube_api import YouTubeApiError # Import the custom exception
 
 # Load environment variables
 load_dotenv()
@@ -40,15 +41,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.exception_handler(YouTubeApiError)
+async def youtube_api_exception_handler(request: Request, exc: YouTubeApiError) -> JSONResponse:
+    """Handler for YouTubeApiError to return specific responses."""
+    # Log exc.detail for server-side debugging, if needed
+    return JSONResponse(
+        status_code=exc.status_code, # Use status code from the exception
+        content={
+            "status": "error",
+            "message": "Error communicating with YouTube API. Please try again later or check API key.",
+            "detail": exc.detail # Optionally, include more detail if safe
+        }
+    )
+
 # Add exception handler for cleaner error responses
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for the application"""
+    # TODO: Log the actual exception (exc) here for server-side debugging
     return JSONResponse(
         status_code=500,
         content={
             "status": "error",
-            "message": str(exc)
+            "message": "An unexpected error occurred. Please try again later." # Generic message
         }
     )
 
@@ -59,14 +74,20 @@ app.include_router(compare_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 
 # Serve static files for the React frontend
-# This assumes your React app is built into the `client/build` directory
+# This assumes your React app is built into the `../client/build` directory
 # Adjust the directory path if your build output is elsewhere
-app.mount("/static_assets", StaticFiles(directory="client/build/static"), name="static_assets")
+app.mount("/static", StaticFiles(directory="../client/build/static"), name="static_files")
 
 @app.get("/{catchall:path}", include_in_schema=False)
-async def serve_react_app(request: Request):
+async def serve_react_app():
     """Serves the React app's index.html for any non-API routes."""
-    return FileResponse("client/build/index.html")
+    index_path = os.path.join(os.path.dirname(__file__), "..", "client", "build", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return JSONResponse(
+        status_code=404,
+        content={"message": "Frontend not found. Ensure it's built correctly."}
+    )
 
 # Root endpoint now serves the React App, API docs are at /api/docs
 # The @app.get("/") for API info is effectively replaced by serving index.html

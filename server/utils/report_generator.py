@@ -7,7 +7,7 @@ containing YouTube trend analysis data and insights.
 
 import io
 import csv
-import json
+# import json # Unused
 from typing import Dict, List, Any, Union, BinaryIO
 import pandas as pd
 from reportlab.lib import colors

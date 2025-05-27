@@ -10,8 +10,9 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 
 from utils import youtube_api, data_processor
+from utils.youtube_api import YouTubeApiError
 
-router = APIRouter(prefix="/api/trends", tags=["trends"])
+router = APIRouter(prefix="/trends", tags=["trends"])
 
 # Request and response models
 class TrendsRequest(BaseModel):
@@ -91,8 +92,12 @@ async def get_trends(
             }
         }
         
+    except YouTubeApiError as yte:
+        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @router.get("/channels", response_model=TrendsResponse)
 async def get_trending_channels(
@@ -150,11 +155,15 @@ async def get_trending_channels(
             }
         }
         
+    except YouTubeApiError as yte:
+        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @router.get("/categories", response_model=TrendsResponse)
-async def get_video_categories(
+async def get_video_categories_endpoint(
     api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
     country: str = "PK"
 ):
@@ -175,6 +184,9 @@ async def get_video_categories(
                 "categories": categories
             }
         }
-        
+    except YouTubeApiError as yte:
+        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")

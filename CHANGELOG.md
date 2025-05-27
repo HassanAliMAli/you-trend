@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Render deployment configuration (`server/render.yml`).
 - Vercel deployment configuration (`client/vercel.json`).
+- Entire backend test infrastructure (`server/tests/` directory and test-specific dependencies from `requirements.txt`) to rely solely on real-time API calls.
 
 ## [0.1.0] - 2024-07-26
 ### Added

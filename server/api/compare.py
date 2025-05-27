@@ -6,12 +6,13 @@ allowing users to analyze multiple content categories.
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from pydantic import BaseModel
 
 from utils import youtube_api, data_processor
+from utils.youtube_api import YouTubeApiError
 
-router = APIRouter(prefix="/api/compare", tags=["compare"])
+router = APIRouter(prefix="/compare", tags=["compare"])
 
 # Request and response models
 class CompareRequest(BaseModel):
@@ -74,9 +75,12 @@ async def compare_niches(
             "message": f"Successfully compared {len(niche_list)} niches",
             "data": comparison_results
         }
-        
+    except YouTubeApiError as yte:
+        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @router.get("/metrics", response_model=CompareResponse)
 async def get_niche_metrics(
@@ -102,13 +106,6 @@ async def get_niche_metrics(
             max_results=max_results,
             country=country,
             order="viewCount"
-        )
-        
-        # Get trending videos in the country for comparison
-        trending_videos = youtube_api.get_trending_videos(
-            api_key=api_key,
-            region_code=country,
-            max_results=max_results
         )
         
         # Get channels related to the niche
@@ -155,10 +152,13 @@ async def get_niche_metrics(
                     "video_count": len(videos)
                 },
                 "topics": niche_analysis.get('topics', []),
-                "channels": channels[:5],  # Top 5 channels
+                "channels": channels[:5] if channels else [],
                 "video_ideas": niche_analysis.get('video_ideas', [])
             }
         }
-        
+    except YouTubeApiError as yte:
+        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")

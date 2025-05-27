@@ -68,8 +68,6 @@ dump.rdb
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-PRD.md
-TASKS.md
 
 # Python specific
 *.so

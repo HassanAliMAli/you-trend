@@ -9,6 +9,7 @@ import os
 import json
 import time
 import hashlib
+import logging
 from typing import Dict, List, Any, Optional, Union, Callable
 import redis
 from dotenv import load_dotenv
@@ -18,15 +19,18 @@ load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 API_SECRET_KEY = os.getenv("API_SECRET_KEY", "development_secret_key")
 
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # Initialize Redis connection
 try:
     redis_client = redis.from_url(REDIS_URL)
     # Test connection
     redis_client.ping()
     REDIS_AVAILABLE = True
+    logging.info("Successfully connected to Redis.")
 except Exception as e:
-    print(f"Redis connection failed: {e}")
-    print("Running in non-cached mode")
+    logging.warning(f"Redis connection failed: {e}. Running in non-cached mode.")
     REDIS_AVAILABLE = False
 
 # Cache settings
@@ -74,7 +78,7 @@ def get_cached_result(key: str) -> Optional[Any]:
             return json.loads(cached_data)
         return None
     except Exception as e:
-        print(f"Error retrieving from cache: {e}")
+        logging.warning(f"Error retrieving from cache (key: {key}): {e}")
         return None
 
 def set_cached_result(key: str, data: Any, ttl: int = DEFAULT_TTL) -> bool:
@@ -93,14 +97,14 @@ def set_cached_result(key: str, data: Any, ttl: int = DEFAULT_TTL) -> bool:
         return False
     
     try:
-        # Serialize data to JSON
-        serialized_data = json.dumps(data)
-        
-        # Store in Redis with expiration
-        redis_client.setex(key, ttl, serialized_data)
+        json_data = json.dumps(data)
+        redis_client.setex(key, ttl, json_data)
         return True
-    except Exception as e:
-        print(f"Error storing in cache: {e}")
+    except redis.RedisError as e:
+        logging.error(f"Redis error setting cache key {key}: {e}")
+        return False
+    except TypeError as e:  # Handle JSON serialization errors
+        logging.error(f"Could not serialize data for cache key {key}: {e}")
         return False
 
 def track_quota_usage(cost: int) -> Dict[str, Any]:
@@ -151,7 +155,7 @@ def track_quota_usage(cost: int) -> Dict[str, Any]:
             "warning": warning
         }
     except Exception as e:
-        print(f"Error tracking quota usage: {e}")
+        logging.error(f"Error tracking quota usage: {e}")
         return {
             "tracked": False,
             "error": str(e),
@@ -229,19 +233,19 @@ def clear_cache(prefix: Optional[str] = None) -> int:
         if prefix:
             # Clear keys with specific prefix
             pattern = f"youtrend:{prefix}:*"
-            keys = redis_client.keys(pattern)
-            if keys:
-                return redis_client.delete(*keys)
+            keys_to_delete = [key.decode('utf-8') for key in redis_client.scan_iter(match=pattern)]
+            if keys_to_delete:
+                return redis_client.delete(*keys_to_delete)
             return 0
         else:
-            # Clear all YouTrend keys
+            # Clear all YouTrend keys (scan_iter is safer than keys() for large DBs)
             pattern = "youtrend:*"
-            keys = redis_client.keys(pattern)
-            if keys:
-                return redis_client.delete(*keys)
+            keys_to_delete = [key.decode('utf-8') for key in redis_client.scan_iter(match=pattern)]
+            if keys_to_delete:
+                return redis_client.delete(*keys_to_delete)
             return 0
     except Exception as e:
-        print(f"Error clearing cache: {e}")
+        logging.error(f"Error clearing cache: {e}")
         return 0
 
 def get_quota_usage() -> Dict[str, Any]:
@@ -282,7 +286,7 @@ def get_quota_usage() -> Dict[str, Any]:
             "remaining": QUOTA_LIMIT - current_usage
         }
     except Exception as e:
-        print(f"Error getting quota usage: {e}")
+        logging.error(f"Error getting quota usage: {e}")
         return {
             "tracked": False,
             "error": str(e),
@@ -292,3 +296,21 @@ def get_quota_usage() -> Dict[str, Any]:
             "warning": False,
             "remaining": QUOTA_LIMIT
         }
+
+def invalidate_cache_by_prefix(prefix: str):
+    """
+    Invalidate cache entries by prefix
+    
+    Args:
+        prefix: Prefix to invalidate cache entries
+    """
+    if not REDIS_AVAILABLE:
+        return
+    try:
+        # Clear keys with specific prefix
+        pattern = f"youtrend:{prefix}:*"
+        keys_to_delete = [key.decode('utf-8') for key in redis_client.scan_iter(match=pattern)]
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
+    except Exception as e:
+        logging.error(f"Error invalidating cache by prefix {prefix}: {e}")

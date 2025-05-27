@@ -1,3 +1,0 @@
-#!/bin/bash
-# Heroku runs this after installing Python dependencies
-bash ./build_frontend.sh 
