@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched to unified Heroku deployment for frontend and backend.
 - Switched backend deployment from Render to Heroku (superseded by unified deployment).
 - Amended initial commit to remove `CONVO.md` as per user request.
+- Modified `server/utils/youtube_api.py` functions to accept an optional `api_key` argument, falling back to the `YOUTUBE_API_KEY` environment variable if not provided. This ensures API keys are not hardcoded and can be user-supplied.
+- Updated `README.md` with clearer instructions for setting the `YOUTUBE_API_KEY` in a root `.env` file.
 
 ### Removed
 - Render deployment configuration (`server/render.yml`).

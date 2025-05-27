@@ -5,8 +5,8 @@ This module provides functions to interact with the YouTube Data API v3,
 fetching channels, videos, and search results with quota optimization.
 """
 
-# import os # Unused
-from typing import Dict, List, Optional # Removed Any, Union
+import os # Added import os
+from typing import Dict, List, Optional
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -21,34 +21,36 @@ class YouTubeApiError(Exception):
         self.status_code = status_code
         super().__init__(self.detail)
 
-def get_youtube_client(api_key: str):
+def get_youtube_client(api_key: Optional[str] = None):
     """
     Initialize and return a YouTube API client using the provided api_key
+    or the YOUTUBE_API_KEY environment variable.
     """
-    if not api_key:
-        raise ValueError("YouTube API key must be provided in the request.")
-    return build('youtube', 'v3', developerKey=api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    if not resolved_api_key:
+        raise ValueError("YouTube API key must be provided either as an argument or via YOUTUBE_API_KEY environment variable.")
+    return build('youtube', 'v3', developerKey=resolved_api_key)
 
-def search_videos(api_key: str, query: str, max_results: int = 10, country: str = None, 
-                 video_duration: str = None, order: str = 'viewCount') -> List[Dict]:
+def search_videos(query: str, max_results: int = 10, country: str = None, 
+                 video_duration: str = None, order: str = 'viewCount', api_key: Optional[str] = None) -> List[Dict]:
     """
     Search for YouTube videos based on query and filters
     
     Args:
-        api_key: YouTube API key
         query: Search term
         max_results: Maximum number of results to return (default: 10, max: 50)
         country: Country code filter (e.g., 'US', 'GB', 'PK')
         video_duration: Duration filter ('short', 'medium', 'long')
         order: Sort order ('viewCount', 'relevance', 'rating')
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of video resources with statistics and snippet information
     """
-    # Limit max_results to 50 to optimize quota usage
     max_results = min(max_results, 50)
     
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     # Set up search parameters
     search_params = {
@@ -95,13 +97,13 @@ def search_videos(api_key: str, query: str, max_results: int = 10, country: str 
         # return []
         raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def get_channel_details(api_key: str, channel_ids: List[str]) -> List[Dict]:
+def get_channel_details(channel_ids: List[str], api_key: Optional[str] = None) -> List[Dict]:
     """
     Get detailed information about YouTube channels
     
     Args:
-        api_key: YouTube API key
         channel_ids: List of YouTube channel IDs
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of channel resources with statistics and snippet information
@@ -109,7 +111,8 @@ def get_channel_details(api_key: str, channel_ids: List[str]) -> List[Dict]:
     if not channel_ids:
         return []
     
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     try:
         # Get channel details in a single batch request
@@ -125,23 +128,24 @@ def get_channel_details(api_key: str, channel_ids: List[str]) -> List[Dict]:
         # return []
         raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def get_trending_videos(api_key: str, region_code: str = 'PK', category_id: str = None, 
-                        max_results: int = 10) -> List[Dict]:
+def get_trending_videos(region_code: str = 'PK', category_id: str = None, 
+                        max_results: int = 10, api_key: Optional[str] = None) -> List[Dict]:
     """
     Get trending videos for a specific region and optional category
     
     Args:
-        api_key: YouTube API key
         region_code: ISO 3166-1 alpha-2 country code (default: 'PK' for Pakistan)
         category_id: YouTube video category ID
         max_results: Maximum number of results to return (default: 10, max: 50)
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of trending video resources
     """
     max_results = min(max_results, 50)
     
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     # Set up trending request parameters
     trending_params = {
@@ -164,22 +168,23 @@ def get_trending_videos(api_key: str, region_code: str = 'PK', category_id: str 
         # return []
         raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def search_channels(api_key: str, query: str, max_results: int = 10, region_code: str = None) -> List[Dict]:
+def search_channels(query: str, max_results: int = 10, region_code: str = None, api_key: Optional[str] = None) -> List[Dict]:
     """
     Search for YouTube channels based on query
     
     Args:
-        api_key: YouTube API key
         query: Search term
         max_results: Maximum number of results to return (default: 10, max: 50)
         region_code: ISO 3166-1 alpha-2 country code
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of channel resources with statistics and snippet information
     """
     max_results = min(max_results, 50)
     
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     # Set up search parameters
     search_params = {
@@ -204,25 +209,26 @@ def search_channels(api_key: str, query: str, max_results: int = 10, region_code
             return []
         
         # Step 2: Get detailed channel info
-        return get_channel_details(api_key, channel_ids)
+        return get_channel_details(channel_ids, resolved_api_key)
     
     except HttpError as e:
         # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
         # return []
         raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def get_video_categories(api_key: str, region_code: str = 'PK') -> List[Dict]:
+def get_video_categories(region_code: str = 'PK', api_key: Optional[str] = None) -> List[Dict]:
     """
     Get available video categories for a region
     
     Args:
-        api_key: YouTube API key
         region_code: ISO 3166-1 alpha-2 country code (default: 'PK' for Pakistan)
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of video category resources
     """
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     try:
         categories_response = youtube.videoCategories().list(
@@ -237,43 +243,46 @@ def get_video_categories(api_key: str, region_code: str = 'PK') -> List[Dict]:
         # return []
         raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def get_channel_videos(api_key: str, channel_id: str, max_results: int = 10, 
-                      order: str = 'date') -> List[Dict]:
+def get_channel_videos(channel_id: str, max_results: int = 10, 
+                      order: str = 'date', api_key: Optional[str] = None) -> List[Dict]:
     """
     Get videos from a specific channel
     
     Args:
-        api_key: YouTube API key
         channel_id: YouTube channel ID
         max_results: Maximum number of results to return (default: 10, max: 50)
         order: Sort order ('date', 'viewCount', 'title')
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
         List of video resources
     """
     max_results = min(max_results, 50)
     
-    youtube = get_youtube_client(api_key)
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
     
     try:
         # Step 1: Search for videos from the channel
-        search_response = youtube.search().list(
-            part='id',
-            channelId=channel_id,
-            maxResults=max_results,
-            order=order,
-            type='video'
-        ).execute()
+        search_params = {
+            'channelId': channel_id,
+            'type': 'video',
+            'part': 'id',
+            'order': order,
+            'maxResults': max_results
+        }
+        
+        search_response = youtube.search().list(**search_params).execute()
         
         # Extract video IDs
-        video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
+        video_ids = [item['id']['videoId'] for item in search_response.get('items', []) if item.get('id', {}).get('videoId')]
         
         if not video_ids:
             return []
         
         # Step 2: Get detailed video info and statistics in a single batch request
         videos_response = youtube.videos().list(
-            part='snippet,statistics',
+            part='snippet,statistics,contentDetails',
             id=','.join(video_ids)
         ).execute()
         
@@ -282,33 +291,26 @@ def get_channel_videos(api_key: str, channel_id: str, max_results: int = 10,
     except HttpError as e:
         # print(f"An HTTP error {e.resp.status} occurred:\\n{e.content}")
         # return []
-        raise YouTubeApiError(detail=f"YouTube API error: {e.resp.status} - {e.content}", status_code=e.resp.status)
+        raise YouTubeApiError(detail=f"Failed to get videos for channel_id {channel_id}: {e.resp.status} - {e.content}", status_code=e.resp.status)
 
-def estimate_quota_cost(operation: str, items_count: int = 1) -> int:
+def get_video_details_by_id(video_ids: List[str], api_key: Optional[str] = None) -> List[Dict]:
     """
-    Estimate API quota cost for various operations
-    
+    Get details for a list of video IDs.
     Args:
-        operation: Operation type ('search', 'videos', 'channels')
-        items_count: Number of items to process
-        
-    Returns:
-        Estimated quota cost in units
+        video_ids: A list of video IDs.
+        api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
     """
-    # Quota costs per API call
-    quota_costs = {
-        'search': 100,
-        'videos': 1,
-        'channels': 1,
-        'videoCategories': 1
-    }
+    if not video_ids:
+        return []
     
-    # Calculate total cost (each item in a batch request costs units)
-    base_cost = quota_costs.get(operation, 0)
-    
-    if operation == 'search':
-        # Search is expensive - 100 units per request
-        return base_cost
-    else:
-        # For list operations, cost is base + items
-        return base_cost * items_count
+    resolved_api_key = api_key or os.getenv('YOUTUBE_API_KEY')
+    youtube = get_youtube_client(resolved_api_key)
+
+    try:
+        videos_response = youtube.videos().list(
+            part='snippet,statistics,contentDetails',
+            id=','.join(video_ids)
+        ).execute()
+        return videos_response.get('items', [])
+    except HttpError as e:
+        raise YouTubeApiError(detail=f"Failed to get video details: {e.resp.status} - {e.content}", status_code=e.resp.status)

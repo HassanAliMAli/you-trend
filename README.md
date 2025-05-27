@@ -37,15 +37,22 @@ npm run build
 
 ### Backend (FastAPI)
 ```bash
-# Navigate to server directory
-cd server
+# Navigate to the project root directory (where requirements.txt is located)
+# cd <project_root_directory>
+
+# Create a virtual environment (recommended)
+# python -m venv venv
+# source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Create .env file from example
-cp .env.example .env
-# Edit .env and add your YouTube API key
+# Create a .env file in the project root directory
+# Add your YouTube API key to this .env file:
+# YOUTUBE_API_KEY=YOUR_ACTUAL_API_KEY_HERE
+
+# Navigate to server directory to run the app
+cd server
 
 # Start development server
 uvicorn main:app --reload
@@ -53,10 +60,13 @@ uvicorn main:app --reload
 
 ### YouTube API Key
 1. Visit [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project
-3. Enable YouTube Data API v3
-4. Create API credentials
-5. Add the API key to your `.env` file in the `server` directory and configure it as a Heroku config var.
+2. Create a new project or select an existing one.
+3. Enable the "YouTube Data API v3" for your project.
+4. Go to "Credentials" and create an API key.
+5. **Important**: Create a file named `.env` in the root directory of this project.
+6. Add your API key to the `.env` file in the following format:
+   `YOUTUBE_API_KEY=YOUR_GENERATED_API_KEY`
+7. For deployed environments like Heroku, set `YOUTUBE_API_KEY` as a config var.
 
 ### Deployment
 - The entire application (React frontend and FastAPI backend) is deployed to Heroku.
