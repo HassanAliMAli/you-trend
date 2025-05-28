@@ -21,3 +21,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 APScheduler
 slowapi
+email-validator
