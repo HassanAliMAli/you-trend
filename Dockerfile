@@ -26,6 +26,13 @@ ENV APP_HOME=/app
 
 WORKDIR $APP_HOME
 
+# Install build dependencies for packages like pycairo
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libcairo2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
