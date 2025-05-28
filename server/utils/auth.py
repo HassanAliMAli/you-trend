@@ -5,6 +5,7 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, status
 
 from server.schemas.user import TokenData
 
@@ -114,7 +115,6 @@ oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/users/token", auto_erro
 
 # Need to import UserModel, Session, Depends, user_crud, database for the new function
 from sqlalchemy.orm import Session
-from fastapi import Depends
 from server.crud import user as user_crud
 from server.utils import database
 from server.models.user import User as UserModel 

@@ -57,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed local module imports in `server/main.py` to use explicit relative paths (e.g., `from .api...`) to fix `ModuleNotFoundError: No module named 'api'` when running with Gunicorn in Docker on Heroku.
 - Changed local module imports in `server/api/trends.py`, `server/api/compare.py`, `server/api/reports.py`, `server/api/status.py`, `server/api/users.py`, and `server/api/alerts.py` to use explicit relative paths (e.g., `from ..utils...`) to resolve `ModuleNotFoundError` issues when running with Gunicorn in Docker on Heroku.
 - Adjusted `server/gunicorn_conf.py` to use a more conservative number of workers (defaulting to 2, respecting `WEB_CONCURRENCY` if set to 1 or 2) to prevent R14 memory errors on Heroku free dynos.
+- Added `email-validator` to `requirements.txt` to resolve Heroku deployment error caused by missing dependency for Pydantic email validation.
+- Imported `Depends` from `fastapi` in `server/utils/auth.py` to fix `NameError` during Heroku deployment.
 
 ## [0.1.0] - 2024-07-26
 ### Added
@@ -95,20 +97,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Vercel and Render specific deployment configurations and tasks.
+- `CONVO.md` file and all references to maintaining it.
 
 ## <Date>
 
-- **MOD**: Updated `requirements.txt` with `SQLAlchemy`, `psycopg2-binary`, `alembic`, and `bcrypt` for database integration.
-- **ADD**: Initialized Alembic for database migrations (`server/alembic`).
-- **MOD**: Configured `server/alembic.ini` and `server/alembic/env.py` to use `DATABASE_URL` from `.env` and target model metadata.
-- **ADD**: Created `server/models/base.py` for SQLAlchemy declarative base.
-- **ADD**: Created `server/models/user.py` with `User` model including fields for authentication and API key management.
-- **ADD**: Created `server/models/__init__.py`.
-- **ADD**: Created `server/utils/database.py` for database session management and engine creation, with a fallback to SQLite for local development.
-- **ADD**: Generated initial Alembic migration `server/alembic/versions/bccb60026ecb_create_users_table.py` and populated it to create the `users` table.
-- **ADD**: Implemented `server/utils/auth.py` with password hashing (bcrypt for byte consistency with User model) and JWT creation/decoding utilities. Includes fallbacks for `SECRET_KEY` and `ACCESS_TOKEN_EXPIRE_MINUTES` from `.env`.
-- **ADD**: Implemented `get_current_user_optional` in `server/utils/auth.py` for endpoints allowing optional authentication.
-- **ADD**: Implemented user API endpoints in `server/api/users.py` for registration, login (token), fetching/updating current user details (`/me`), and a basic admin endpoint to list users (superuser only).
-- **MOD**: Integrated the new `users_router` into `server/main.py`.
-- **MOD**: Refactored `server/main.py` to improve CORS, static file serving for React app, global exception handling, and API route prefixing.
-- **MOD**: Updated API endpoints in `server/api/trends.py` (`/trends`, `/channels`, `/categories`) and `server/api/compare.py`
+- **MOD**: Updated `
