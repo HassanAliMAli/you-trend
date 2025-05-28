@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `Dockerfile` to install `build-essential`, `pkg-config`, and `libcairo2-dev` in the Python stage to allow successful installation of `pycairo` (a `reportlab` dependency) during Heroku Docker build.
 - Changed local module imports in `server/main.py` to use explicit relative paths (e.g., `from .api...`) to fix `ModuleNotFoundError: No module named 'api'` when running with Gunicorn in Docker on Heroku.
 - Changed local module imports in `server/api/trends.py`, `server/api/compare.py`, `server/api/reports.py`, `server/api/status.py`, `server/api/users.py`, and `server/api/alerts.py` to use explicit relative paths (e.g., `from ..utils...`) to resolve `ModuleNotFoundError` issues when running with Gunicorn in Docker on Heroku.
+- Adjusted `server/gunicorn_conf.py` to use a more conservative number of workers (defaulting to 2, respecting `WEB_CONCURRENCY` if set to 1 or 2) to prevent R14 memory errors on Heroku free dynos.
 
 ## [0.1.0] - 2024-07-26
 ### Added

@@ -9,7 +9,21 @@ bind = f"0.0.0.0:{port}"
 # Worker processes
 # Number of worker processes. A common recommendation is (2 * cpu_count) + 1.
 # Heroku typically sets WEB_CONCURRENCY environment variable.
-workers = int(os.getenv("WEB_CONCURRENCY", os.cpu_count() * 2 + 1 if os.cpu_count() else 3))
+# workers = int(os.getenv("WEB_CONCURRENCY", os.cpu_count() * 2 + 1 if os.cpu_count() else 3))
+
+_web_concurrency_str = os.getenv("WEB_CONCURRENCY")
+workers = 2  # Default to 2 workers for a small dyno, good for Uvicorn.
+if _web_concurrency_str:
+    try:
+        _web_concurrency_int = int(_web_concurrency_str)
+        # For a 512MB dyno, keep it low. Uvicorn workers are async.
+        if 1 <= _web_concurrency_int <= 2:
+            workers = _web_concurrency_int
+        elif _web_concurrency_int > 2: # If Heroku suggests more, still cap it for free tier.
+            workers = 2
+    except ValueError:
+        pass # Keep default if parsing WEB_CONCURRENCY fails
+
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # Logging
