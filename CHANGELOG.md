@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved import block for `Session`, `user_crud`, `database`, and `UserModel` to the top of `server/utils/auth.py` to resolve `NameError` for `database`.
 - Added `python-multipart` to `requirements.txt` to resolve `RuntimeError` for form data handling in FastAPI.
 - Defined `get_current_active_user` function and `oauth2_scheme` in `server/utils/auth.py` to resolve `AttributeError` in `alerts.py`.
+- Corrected import in `server/main.py` from `get_redis_client` to `redis_client` and `clear_specific_cache` to `clear_cache` to match `server/utils/cache.py` and resolve `ImportError`.
 
 ## [0.1.0] - 2024-07-26
 ### Added

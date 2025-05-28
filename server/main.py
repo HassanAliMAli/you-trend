@@ -20,7 +20,7 @@ from .api.status import router as status_router
 from .api.users import router as users_router
 from .api.alerts import router as alerts_router
 from .utils.youtube_api import YouTubeApiError # Import the custom exception
-from .utils.cache import get_redis_client, REDIS_AVAILABLE, clear_specific_cache
+from .utils.cache import redis_client, REDIS_AVAILABLE, clear_cache
 
 # --- APScheduler Imports ---
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
