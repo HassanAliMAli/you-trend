@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tubetrends_backend
+    ports:
+      - "8000:8000" # Expose port 8000 on host to port 8000 in container (or as per GUNICORN_PORT)
+    volumes:
+      # Mount the server code for development hot-reloading if Gunicorn reload is enabled.
+      # For production, you might not need this volume mount if code is baked into the image.
+      - ./server:/app/server
+      # .env file is NOT explicitly copied into the image or mounted for production best practices.
+      # Docker Compose will automatically look for a .env file in the project root for local dev.
+      # For Heroku, environment variables will be set as Config Vars.
+    env_file:
+      - .env # Ensure docker-compose loads .env for local development
+    environment:
+      - PYTHONUNBUFFERED=1 
+      # - DATABASE_URL=postgresql://user:password@db:5432/tubetrends_db # Example for Postgres
+      # - REDIS_URL=redis://redis:6379 # Example for Redis
+      - PORT=8000 # Ensure Gunicorn uses this port if not set elsewhere
+      # Add other environment variables needed by your application here
+      # E.g., SECRET_KEY, YOUTUBE_API_KEY (though .env mount also provides them)
+    depends_on:
+      # - db  # Uncomment if using the db service defined below
+      # - redis # Uncomment if using a redis service
+    restart: unless-stopped
+
+  # Uncomment and configure the PostgreSQL service if you want to use it.
+  # db:
+  #   image: postgres:15
+  #   container_name: tubetrends_postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   environment:
+  #     - POSTGRES_USER=youruser
+  #     - POSTGRES_PASSWORD=yourpassword
+  #     - POSTGRES_DB=tubetrends_db
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+  # Uncomment and configure Redis service if you want to use it for caching/rate-limiting
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: tubetrends_redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+
+volumes:
+  # postgres_data: # Uncomment if using the db service
+  # redis_data:    # Uncomment if using the redis service
+  tubetrends_data: # General volume if needed for other persistent data like SQLite if mapped out 
