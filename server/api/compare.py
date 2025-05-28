@@ -6,159 +6,62 @@ allowing users to analyze multiple content categories.
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, List, Any
-from pydantic import BaseModel
+from typing import Dict, List, Any, Optional
 
-from utils import youtube_api, data_processor
+import utils.youtube_api as youtube_api
+import utils.data_processor as data_processor
 from utils.youtube_api import YouTubeApiError
 
 router = APIRouter(prefix="/compare", tags=["compare"])
 
-# Request and response models
-class CompareRequest(BaseModel):
-    niches: List[str]
-    country: str = "PK"  # Default to Pakistan
-    max_results: int = 10
-    order: str = "viewCount"
-
-class CompareResponse(BaseModel):
-    status: str
-    message: str
-    data: Dict[str, Any]
-
-@router.get("", response_model=CompareResponse)
-async def compare_niches(
-    niches: str = Query(..., description="Comma-separated list of niches to compare"),
-    country: str = "PK",
-    max_results: int = 10,
-    order: str = "viewCount",
+@router.get("", response_model=None)
+async def compare_niches_endpoint(
+    niches: str = Query(..., description="Comma-separated list of niches (keywords) to compare. Max 5."),
+    country: str = Query("PK", description="Country code (e.g., 'PK', 'US')"),
+    max_results_per_niche: int = Query(10, description="Max videos per niche for analysis (default:10, max:25)", ge=1, le=25),
+    order: str = Query("viewCount", description="Sort order for videos ('viewCount', 'relevance', 'rating', 'date')"),
+    published_after: Optional[str] = Query(None, description="Filter videos published after (YYYY-MM-DDTHH:MM:SSZ)"),
+    published_before: Optional[str] = Query(None, description="Filter videos published before (YYYY-MM-DDTHH:MM:SSZ)"),
+    language: Optional[str] = Query(None, description="Filter videos by language (ISO 639-1 code)"),
     api_key: str = Query(..., description="YouTube Data API v3 key (required)")
 ):
     """
-    Compare different niches based on their YouTube metrics
-    
-    - **niches**: Comma-separated list of niches to compare (e.g., 'Gaming,Tech,Beauty')
-    - **country**: Country code (e.g., 'PK', 'US')
-    - **max_results**: Maximum number of results per niche (default: 10, max: 50)
-    - **order**: Sort order for videos ('viewCount', 'relevance', 'rating', 'date')
+    Compare different niches based on their YouTube metrics.
+    Fetches videos for each niche and then runs comparative analysis.
     """
-    if not api_key:
-        raise HTTPException(status_code=400, detail="YouTube API key is required.")
     try:
-        # Parse niches from comma-separated string
         niche_list = [niche.strip() for niche in niches.split(',') if niche.strip()]
         
         if not niche_list:
-            raise HTTPException(status_code=400, detail="No valid niches provided")
+            raise HTTPException(status_code=400, detail="No valid niches provided for comparison.")
         
-        # Limit number of niches to compare (to avoid excessive API calls)
         if len(niche_list) > 5:
-            niche_list = niche_list[:5]
+            niche_list = niche_list[:5] # Silently cap at 5 for now
             
-        # Gather videos for each niche
-        niches_data = {}
-        for niche in niche_list:
+        niches_video_data: Dict[str, List[Dict[str, Any]]] = {}
+        for niche_keyword in niche_list:
             videos = youtube_api.search_videos(
-                api_key=api_key,
-                query=niche,
-                max_results=max_results,
+                query=niche_keyword,
+                max_results=max_results_per_niche,
                 country=country,
-                order=order
+                order=order,
+                published_after=published_after,
+                published_before=published_before,
+                relevance_language=language,
+                api_key=api_key
             )
-            niches_data[niche] = videos
+            niches_video_data[niche_keyword] = videos
         
-        # Compare niches
-        comparison_results = data_processor.compare_niches(niches_data)
+        comparison_results = data_processor.compare_niches(niches_video_data)
         
         return {
             "status": "success",
-            "message": f"Successfully compared {len(niche_list)} niches",
+            "message": f"Successfully processed comparison for {len(niche_list)} niches.",
             "data": comparison_results
         }
     except YouTubeApiError as yte:
         raise HTTPException(status_code=yte.status_code, detail=yte.detail)
-    except HTTPException:
-        raise
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
-
-@router.get("/metrics", response_model=CompareResponse)
-async def get_niche_metrics(
-    niche: str,
-    country: str = "PK",
-    max_results: int = 10,
-    api_key: str = Query(..., description="YouTube Data API v3 key (required)")
-):
-    """
-    Get detailed metrics for a specific niche
-    
-    - **niche**: The niche to analyze (e.g., 'Gaming')
-    - **country**: Country code (e.g., 'PK', 'US')
-    - **max_results**: Maximum number of videos to analyze (default: 10, max: 50)
-    """
-    if not api_key:
-        raise HTTPException(status_code=400, detail="YouTube API key is required.")
-    try:
-        # Get videos for the niche
-        videos = youtube_api.search_videos(
-            api_key=api_key,
-            query=niche,
-            max_results=max_results,
-            country=country,
-            order="viewCount"
-        )
-        
-        # Get channels related to the niche
-        channels = youtube_api.search_channels(
-            api_key=api_key,
-            query=niche,
-            max_results=max_results,
-            region_code=country
-        )
-        
-        # Analyze trends for the niche
-        niche_analysis = data_processor.analyze_video_trends(videos)
-        
-        # Extract insights
-        avg_views = 0
-        avg_engagement = 0
-        
-        if videos:
-            view_counts = [int(video.get('statistics', {}).get('viewCount', 0)) for video in videos]
-            avg_views = sum(view_counts) / len(view_counts) if view_counts else 0
-            
-            engagement_rates = []
-            for video in videos:
-                stats = video.get('statistics', {})
-                views = int(stats.get('viewCount', 0))
-                likes = int(stats.get('likeCount', 0))
-                comments = int(stats.get('commentCount', 0))
-                
-                if views > 0:
-                    engagement_rates.append((likes + comments) / views)
-                else:
-                    engagement_rates.append(0)
-            
-            avg_engagement = sum(engagement_rates) / len(engagement_rates) if engagement_rates else 0
-        
-        return {
-            "status": "success",
-            "message": f"Successfully analyzed {niche} niche",
-            "data": {
-                "niche": niche,
-                "metrics": {
-                    "avg_views": avg_views,
-                    "avg_engagement_rate": avg_engagement,
-                    "video_count": len(videos)
-                },
-                "topics": niche_analysis.get('topics', []),
-                "channels": channels[:5] if channels else [],
-                "video_ideas": niche_analysis.get('video_ideas', [])
-            }
-        }
-    except YouTubeApiError as yte:
-        raise HTTPException(status_code=yte.status_code, detail=yte.detail)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred during niche comparison: {str(e)}")

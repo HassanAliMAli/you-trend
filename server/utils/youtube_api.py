@@ -32,7 +32,11 @@ def get_youtube_client(api_key: Optional[str] = None):
     return build('youtube', 'v3', developerKey=resolved_api_key)
 
 def search_videos(query: str, max_results: int = 10, country: str = None, 
-                 video_duration: str = None, order: str = 'viewCount', api_key: Optional[str] = None) -> List[Dict]:
+                 video_duration: str = None, order: str = 'viewCount', 
+                 published_after: Optional[str] = None,
+                 published_before: Optional[str] = None,
+                 relevance_language: Optional[str] = None,
+                 api_key: Optional[str] = None) -> List[Dict]:
     """
     Search for YouTube videos based on query and filters
     
@@ -42,6 +46,9 @@ def search_videos(query: str, max_results: int = 10, country: str = None,
         country: Country code filter (e.g., 'US', 'GB', 'PK')
         video_duration: Duration filter ('short', 'medium', 'long')
         order: Sort order ('viewCount', 'relevance', 'rating')
+        published_after: Filter for videos published after this date (YYYY-MM-DDTHH:MM:SSZ)
+        published_before: Filter for videos published before this date (YYYY-MM-DDTHH:MM:SSZ)
+        relevance_language: Filter for videos relevant to a specific language (ISO 639-1 code)
         api_key: YouTube API key (optional, falls back to YOUTUBE_API_KEY env var)
         
     Returns:
@@ -73,6 +80,13 @@ def search_videos(query: str, max_results: int = 10, country: str = None,
             'Long (> 20 minutes)': 'long'
         }
         search_params['videoDuration'] = duration_mapping.get(video_duration, 'any')
+
+    if published_after:
+        search_params['publishedAfter'] = published_after
+    if published_before:
+        search_params['publishedBefore'] = published_before
+    if relevance_language:
+        search_params['relevanceLanguage'] = relevance_language
     
     try:
         # Step 1: Search for video IDs
