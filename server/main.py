@@ -13,19 +13,19 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 # Import API routers
-from api.trends import router as trends_router
-from api.compare import router as compare_router
-from api.reports import router as reports_router
-from api.status import router as status_router
-from api.users import router as users_router
-from api.alerts import router as alerts_router
-from utils.youtube_api import YouTubeApiError # Import the custom exception
-from utils.cache import get_redis_client, REDIS_AVAILABLE, clear_specific_cache
+from .api.trends import router as trends_router
+from .api.compare import router as compare_router
+from .api.reports import router as reports_router
+from .api.status import router as status_router
+from .api.users import router as users_router
+from .api.alerts import router as alerts_router
+from .utils.youtube_api import YouTubeApiError # Import the custom exception
+from .utils.cache import get_redis_client, REDIS_AVAILABLE, clear_specific_cache
 
 # --- APScheduler Imports ---
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from server.utils.alert_processor import process_all_alerts
-from server.utils.database import SessionLocal # To create a new session for the job
+from .utils.alert_processor import process_all_alerts
+from .utils.database import SessionLocal # To create a new session for the job
 # --- End APScheduler Imports ---
 
 # --- Rate Limiting Imports ---

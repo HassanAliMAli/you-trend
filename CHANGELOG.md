@@ -53,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Added `ajv` as a direct dependency (`"ajv": "8.12.0"`) in `client/package.json` to resolve a build error (`Cannot find module 'ajv/dist/compile/codegen'`) during `npm run build` on Heroku Docker deployment.
+- Updated `Dockerfile` to install `build-essential`, `pkg-config`, and `libcairo2-dev` in the Python stage to allow successful installation of `pycairo` (a `reportlab` dependency) during Heroku Docker build.
+- Changed local module imports in `server/main.py` to use explicit relative paths (e.g., `from .api...`) to fix `ModuleNotFoundError: No module named 'api'` when running with Gunicorn in Docker on Heroku.
 
 ## [0.1.0] - 2024-07-26
 ### Added
@@ -107,4 +109,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ADD**: Implemented user API endpoints in `server/api/users.py` for registration, login (token), fetching/updating current user details (`/me`), and a basic admin endpoint to list users (superuser only).
 - **MOD**: Integrated the new `users_router` into `server/main.py`.
 - **MOD**: Refactored `server/main.py` to improve CORS, static file serving for React app, global exception handling, and API route prefixing.
-- **MOD**: Updated API endpoints in `server/api/trends.py` (`/trends`, `/channels`, `/categories`) and `server/api/compare.py` (`/compare`) to support user-specific API keys. These endpoints now prioritize API key usage: query parameter -> authenticated user's saved key -> system .env key.
+- **MOD**: Updated API endpoints in `server/api/trends.py` (`/trends`, `/channels`, `/categories`) and `server/api/compare.py`
