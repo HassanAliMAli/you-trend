@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Imported `Depends` from `fastapi` in `server/utils/auth.py` to fix `NameError` during Heroku deployment.
 - Moved definition of `oauth2_scheme_optional` before its usage in `server/utils/auth.py` to resolve `NameError`.
 - Moved import block for `Session`, `user_crud`, `database`, and `UserModel` to the top of `server/utils/auth.py` to resolve `NameError` for `database`.
+- Added `python-multipart` to `requirements.txt` to resolve `RuntimeError` for form data handling in FastAPI.
 
 ## [0.1.0] - 2024-07-26
 ### Added
