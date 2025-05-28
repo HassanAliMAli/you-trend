@@ -10,8 +10,8 @@ from typing import Dict, Any
 import os
 from pydantic import BaseModel
 
-from utils import youtube_api
-from utils.youtube_api import YouTubeApiError # Import custom exception
+from ..utils import youtube_api
+from ..utils.youtube_api import YouTubeApiError # Import custom exception
 
 router = APIRouter(tags=["status"]) # Prefix removed, will be set by main app including this router
 

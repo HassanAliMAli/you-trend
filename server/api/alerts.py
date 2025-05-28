@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from server.utils import database, auth
-from server.schemas import alert as alert_schema
-from server.crud import alert as alert_crud
-from server.models.user import User as UserModel
+from ..utils import database, auth
+from ..schemas import alert as alert_schema
+from ..crud import alert as alert_crud
+from ..models.user import User as UserModel
 
 router = APIRouter(
     prefix="/alerts",

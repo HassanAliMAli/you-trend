@@ -9,13 +9,13 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import Session
 
-import utils.youtube_api as youtube_api
-import utils.data_processor as data_processor
-from utils.youtube_api import YouTubeApiError
+from ..utils import youtube_api
+from ..utils import data_processor
+from ..utils.youtube_api import YouTubeApiError
 
 # For user authentication (optional)
-from server.utils import database, auth
-from server.models.user import User as UserModel
+from ..utils import database, auth
+from ..models.user import User as UserModel
 
 router = APIRouter(prefix="/compare", tags=["compare"])
 

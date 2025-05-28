@@ -3,10 +3,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
 
-from server.utils import database, auth
-from server.schemas import user as user_schema
-from server.crud import user as user_crud
-from server.models.user import User as UserModel # For type hinting current_user
+from ..utils import database, auth
+from ..schemas import user as user_schema
+from ..crud import user as user_crud
+from ..models.user import User as UserModel # For type hinting current_user
 
 router = APIRouter(
     prefix="/users",

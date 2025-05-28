@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 
 # Assuming utils are in PYTHONPATH or adjusted relative import if needed
 # For local structure: from ..utils import youtube_api, data_processor
-import utils.youtube_api as youtube_api
-import utils.data_processor as data_processor
-from utils.youtube_api import YouTubeApiError
+from ..utils import youtube_api
+from ..utils import data_processor
+from ..utils.youtube_api import YouTubeApiError
 
 # For user authentication (optional)
-from server.utils import database, auth # Added
-from server.models.user import User as UserModel # Added
+from ..utils import database, auth # Added
+from ..models.user import User as UserModel # Added
 
 router = APIRouter(prefix="/trends", tags=["trends"])
 

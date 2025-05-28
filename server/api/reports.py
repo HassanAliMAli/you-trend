@@ -16,8 +16,8 @@ import time
 import logging
 from datetime import datetime
 
-from utils import report_generator
-from utils.cache import redis_client, REDIS_AVAILABLE, DEFAULT_TTL # Import Redis utils
+from ..utils import report_generator
+from ..utils.cache import redis_client, REDIS_AVAILABLE, DEFAULT_TTL # Import Redis utils
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
