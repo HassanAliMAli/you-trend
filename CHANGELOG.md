@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved definition of `oauth2_scheme_optional` before its usage in `server/utils/auth.py` to resolve `NameError`.
 - Moved import block for `Session`, `user_crud`, `database`, and `UserModel` to the top of `server/utils/auth.py` to resolve `NameError` for `database`.
 - Added `python-multipart` to `requirements.txt` to resolve `RuntimeError` for form data handling in FastAPI.
+- Defined `get_current_active_user` function and `oauth2_scheme` in `server/utils/auth.py` to resolve `AttributeError` in `alerts.py`.
 
 ## [0.1.0] - 2024-07-26
 ### Added

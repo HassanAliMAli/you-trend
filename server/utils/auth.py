@@ -73,6 +73,9 @@ def verify_password_with_bytes_hash(plain_password: str, hashed_password_bytes: 
 # This will make the Authorization header optional for endpoints using it.
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/users/token", auto_error=False)
 
+# Define the standard oauth2_scheme for required authentication
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+
 # New function for optional user authentication
 async def get_current_user_optional(
     token: Optional[str] = Depends(oauth2_scheme_optional),
@@ -91,3 +94,34 @@ async def get_current_user_optional(
         return user
     except Exception:
         return None 
+
+# Function to get the current active user (authentication required)
+async def get_current_active_user(
+    token: str = Depends(oauth2_scheme), 
+    db: Session = Depends(database.get_db)
+) -> UserModel:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_token_payload(token)
+        if payload is None:
+            raise credentials_exception
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        
+        # Here we assume tokenData is not strictly needed if username is primary identifier
+        # token_data = TokenData(username=username) # If you have a TokenData schema
+        
+    except JWTError: # Catch JWTError specifically from decode_token_payload
+        raise credentials_exception
+    
+    user = user_crud.get_user_by_username(db, username=username)
+    if user is None:
+        raise credentials_exception
+    if not user.is_active: # Assuming your UserModel has an is_active attribute
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
+    return user 
