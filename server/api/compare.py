@@ -5,12 +5,17 @@ This module provides API endpoints for comparing different YouTube niches,
 allowing users to analyze multiple content categories.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Dict, List, Any, Optional
+from sqlalchemy.orm import Session
 
 import utils.youtube_api as youtube_api
 import utils.data_processor as data_processor
 from utils.youtube_api import YouTubeApiError
+
+# For user authentication (optional)
+from server.utils import database, auth
+from server.models.user import User as UserModel
 
 router = APIRouter(prefix="/compare", tags=["compare"])
 
@@ -23,12 +28,19 @@ async def compare_niches_endpoint(
     published_after: Optional[str] = Query(None, description="Filter videos published after (YYYY-MM-DDTHH:MM:SSZ)"),
     published_before: Optional[str] = Query(None, description="Filter videos published before (YYYY-MM-DDTHH:MM:SSZ)"),
     language: Optional[str] = Query(None, description="Filter videos by language (ISO 639-1 code)"),
-    api_key: str = Query(..., description="YouTube Data API v3 key (required)")
+    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key"),
+    db: Session = Depends(database.get_db),
+    current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):
     """
     Compare different niches based on their YouTube metrics.
     Fetches videos for each niche and then runs comparative analysis.
+    Prioritizes API key: query parameter > authenticated user's key > system .env key.
     """
+    final_api_key_to_use = api_key_query
+    if not final_api_key_to_use and current_user and current_user.youtube_api_key:
+        final_api_key_to_use = current_user.youtube_api_key
+
     try:
         niche_list = [niche.strip() for niche in niches.split(',') if niche.strip()]
         
@@ -48,7 +60,7 @@ async def compare_niches_endpoint(
                 published_after=published_after,
                 published_before=published_before,
                 relevance_language=language,
-                api_key=api_key
+                api_key=final_api_key_to_use
             )
             niches_video_data[niche_keyword] = videos
         

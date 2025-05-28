@@ -5,8 +5,9 @@ This module provides API endpoints for analyzing YouTube trends,
 including video search, trending videos, and trend analysis.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Dict, List, Optional, Any
+from sqlalchemy.orm import Session
 # from pydantic import BaseModel # BaseModel for request body not used here, using Query params
 
 # Assuming utils are in PYTHONPATH or adjusted relative import if needed
@@ -14,6 +15,10 @@ from typing import Dict, List, Optional, Any
 import utils.youtube_api as youtube_api
 import utils.data_processor as data_processor
 from utils.youtube_api import YouTubeApiError
+
+# For user authentication (optional)
+from server.utils import database, auth # Added
+from server.models.user import User as UserModel # Added
 
 router = APIRouter(prefix="/trends", tags=["trends"])
 
@@ -34,7 +39,8 @@ router = APIRouter(prefix="/trends", tags=["trends"])
 
 @router.get("", response_model=None) # Using None or Dict for more flexible response initially
 async def get_trends(
-    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
+    # api_key: str = Query(..., description="YouTube Data API v3 key (required)"), # Made optional
+    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's saved key or system key.", alias="api_key"),
     query: Optional[str] = Query(None, description="Search term for videos. If empty, fetches general trending videos."),
     category: Optional[str] = Query(None, description="Video category ID (used if query is empty for general trending)"),
     country: str = Query("PK", description="Country code (e.g., 'PK', 'US')"),
@@ -43,15 +49,22 @@ async def get_trends(
     order: str = Query("viewCount", description="Sort order for search ('viewCount', 'relevance', 'rating', 'date')"),
     published_after: Optional[str] = Query(None, description="Filter videos published after this date (YYYY-MM-DDTHH:MM:SSZ)"),
     published_before: Optional[str] = Query(None, description="Filter videos published before this date (YYYY-MM-DDTHH:MM:SSZ)"),
-    language: Optional[str] = Query(None, description="Filter videos relevant to a specific language (ISO 639-1 code)")
+    language: Optional[str] = Query(None, description="Filter videos relevant to a specific language (ISO 639-1 code)"),
+    # Optional authentication and DB session
+    db: Session = Depends(database.get_db), # Added
+    current_user: Optional[UserModel] = Depends(auth.get_current_user_optional) # Changed to get_current_user_optional
 ):
     """
     Get trending videos and analysis based on search parameters.
     If query is provided, performs a search. Otherwise, fetches general trending videos.
+    Prioritizes API key: query parameter > authenticated user's key > system .env key.
     """
-    # No explicit api_key check here, as youtube_api functions will use env var or raise error
-    # However, FastAPI Query(..., makes it required if not supplied via env by those funcs
-    
+    final_api_key_to_use = api_key_query # Prioritize query parameter
+    if not final_api_key_to_use and current_user and current_user.youtube_api_key:
+        final_api_key_to_use = current_user.youtube_api_key
+    # If still no key, youtube_api functions will try .env or raise error if that also fails.
+    # No explicit check for `final_api_key_to_use is None` here, let youtube_api handle it.
+
     try:
         videos: List[Dict[str, Any]] = []
         if query:
@@ -64,20 +77,20 @@ async def get_trends(
                 published_after=published_after,
                 published_before=published_before,
                 relevance_language=language,
-                api_key=api_key # Explicitly pass for clarity, though utils handle fallback
+                api_key=final_api_key_to_use 
             )
-        elif category: # Only fetch general trending if no query but category is specified
+        elif category:
             videos = youtube_api.get_trending_videos(
                 region_code=country,
                 category_id=category,
                 max_results=max_results,
-                api_key=api_key
+                api_key=final_api_key_to_use
             )
-        else: # Default to general trending for the country if no query and no category
+        else: 
             videos = youtube_api.get_trending_videos(
                 region_code=country,
                 max_results=max_results,
-                api_key=api_key
+                api_key=final_api_key_to_use
             )
         
         if not videos:
@@ -132,26 +145,30 @@ async def get_trends(
 
 @router.get("/channels", response_model=None) # Using None or Dict for more flexible response initially
 async def get_trending_channels(
-    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
+    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key"),
     query: Optional[str] = Query(None, description="Search term for channels. If empty, this might not yield useful general results without further logic."),
     country: str = Query("PK", description="Country code (e.g., 'PK', 'US') for search region bias"),
-    max_results: int = Query(10, description="Maximum number of channels to return (default: 10, max: 50)", ge=1, le=50)
+    max_results: int = Query(10, description="Maximum number of channels to return (default: 10, max: 50)", ge=1, le=50),
+    db: Session = Depends(database.get_db),
+    current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):
     """
     Get trending channels based on search parameters.
-    Note: YouTube API doesn't have a direct 'trending channels' like 'trending videos'. 
-    This searches channels by query and then analyzes them.
-    If query is empty, behavior might be undefined or fetch very broad results.
+    Prioritizes API key: query parameter > authenticated user's key > system .env key.
     """
     if not query:
          raise HTTPException(status_code=400, detail="A search query is required to find channels.")
+
+    final_api_key_to_use = api_key_query
+    if not final_api_key_to_use and current_user and current_user.youtube_api_key:
+        final_api_key_to_use = current_user.youtube_api_key
 
     try:
         channels_details = youtube_api.search_channels(
             query=query,
             max_results=max_results,
             region_code=country,
-            api_key=api_key
+            api_key=final_api_key_to_use
         )
         
         if not channels_details:
@@ -177,7 +194,7 @@ async def get_trending_channels(
                         channel_id=channel_id,
                         max_results=10, # Number of videos to fetch per channel for scoring
                         order='viewCount',
-                        api_key=api_key
+                        api_key=final_api_key_to_use
                     )
                     videos_by_channel_map[channel_id] = channel_videos
         
@@ -203,15 +220,21 @@ async def get_trending_channels(
 
 @router.get("/categories", response_model=None) # Using None or Dict for more flexible response initially
 async def get_video_categories_endpoint(
-    api_key: str = Query(..., description="YouTube Data API v3 key (required)"),
-    country: str = Query("PK", description="Country code (e.g., 'PK', 'US')")
+    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key"),
+    country: str = Query("PK", description="Country code (e.g., 'PK', 'US')"),
+    db: Session = Depends(database.get_db),
+    current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):
     """
     Get available video categories for a region.
-    These are official YouTube categories.
+    Prioritizes API key: query parameter > authenticated user's key > system .env key.
     """
+    final_api_key_to_use = api_key_query
+    if not final_api_key_to_use and current_user and current_user.youtube_api_key:
+        final_api_key_to_use = current_user.youtube_api_key
+
     try:
-        categories = youtube_api.get_video_categories(region_code=country, api_key=api_key)
+        categories = youtube_api.get_video_categories(region_code=country, api_key=final_api_key_to_use)
         return {
             "status": "success",
             "message": f"Found {len(categories)} video categories for region {country}",
