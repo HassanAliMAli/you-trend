@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted `server/gunicorn_conf.py` to use a more conservative number of workers (defaulting to 2, respecting `WEB_CONCURRENCY` if set to 1 or 2) to prevent R14 memory errors on Heroku free dynos.
 - Added `email-validator` to `requirements.txt` to resolve Heroku deployment error caused by missing dependency for Pydantic email validation.
 - Imported `Depends` from `fastapi` in `server/utils/auth.py` to fix `NameError` during Heroku deployment.
+- Moved definition of `oauth2_scheme_optional` before its usage in `server/utils/auth.py` to resolve `NameError`.
 
 ## [0.1.0] - 2024-07-26
 ### Added

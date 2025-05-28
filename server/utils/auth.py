@@ -87,6 +87,11 @@ def verify_password_with_bytes_hash(plain_password: str, hashed_password_bytes: 
 # We will use get_password_hash_bytes and verify_password_with_bytes_hash for direct use with the User model
 # This keeps consistency with the existing User model methods.
 
+# We need to define oauth2_scheme_optional for get_current_user_optional
+# This will make the Authorization header optional for endpoints using it.
+from fastapi.security import OAuth2PasswordBearer
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/users/token", auto_error=False)
+
 # New function for optional user authentication
 async def get_current_user_optional(
     token: Optional[str] = Depends(oauth2_scheme_optional),
@@ -107,11 +112,6 @@ async def get_current_user_optional(
     except Exception:
         # Any exception during token processing means optional auth fails silently
         return None
-
-# We need to define oauth2_scheme_optional for get_current_user_optional
-# This will make the Authorization header optional for endpoints using it.
-from fastapi.security import OAuth2PasswordBearer
-oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/users/token", auto_error=False)
 
 # Need to import UserModel, Session, Depends, user_crud, database for the new function
 from sqlalchemy.orm import Session
