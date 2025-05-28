@@ -1,138 +1,159 @@
-# YouTrend
+# TubeTrends - YouTube Trend Analysis Platform
 
-YouTrend is a YouTube trend analysis web app designed to identify top channels, videos, and content ideas. It helps content creators discover trending niches and optimize their YouTube strategy with data-driven insights.
+TubeTrends is a web application designed to help content creators and marketers identify and analyze trending topics, videos, and channels on YouTube. It provides insights into what's currently popular, suggests video ideas, and allows for comparative analysis of different niches.
 
-## Overview
+## Features
 
-This application provides the following features:
-- Analyze YouTube trends by keyword, country, niche, and date range
-- Identify top-performing channels, videos, and topics using weighted metrics
-- Suggest related niches and actionable video ideas
-- Generate interactive reports and downloadable files (TXT, CSV, XLSX, PDF)
-- Secure and lightweight app with optimized YouTube API usage
+-   **Trend Discovery**: Find trending videos and topics based on keywords, categories, or regions.
+-   **Niche Analysis**: Analyze specific niches for popular content and channels.
+-   **Video Idea Generation**: Get suggestions for new video content based on current trends.
+-   **Comparative Analysis**: Compare metrics and trends between different videos or channels.
+-   **Data Export**: Export trend data and reports in various formats (CSV, PDF, Excel, TXT).
+-   **User Accounts**: Secure user registration and login to save preferences and API keys.
+-   **Personalized API Key**: Users can securely store their own YouTube Data API v3 key.
+-   **Trend Alerts**: (Backend Implemented) Users can subscribe to alerts for specific keywords or niches.
+-   **Admin Panel**: (Backend Implemented) Basic user management capabilities for administrators.
+-   **Caching**: Utilizes Redis (if available) for caching API responses to improve performance and manage API quota usage.
+-   **Rate Limiting**: API endpoints are rate-limited to prevent abuse.
+-   **Dockerized**: The application is containerized using Docker for consistent development and deployment.
+
+## Project Structure
+
+```
+TubeTrends/
+├── client/             # React Frontend Application
+│   ├── public/
+│   └── src/
+├── docs/               # Project Documentation (API, Development, User Guide)
+├── server/             # FastAPI Backend Application
+│   ├── alembic/        # Database migrations
+│   ├── api/            # API endpoint routers
+│   ├── crud/           # CRUD operations for database models
+│   ├── models/         # SQLAlchemy database models
+│   ├── schemas/        # Pydantic schemas for data validation
+│   ├── utils/          # Utility modules (YouTube API, data processing, etc.)
+│   └── main.py         # Main FastAPI application file
+├── .dockerignore       # Specifies files to ignore for Docker builds
+├── .env.example        # Example environment variables
+├── .gitignore          # Specifies intentionally untracked files that Git should ignore
+├── CHANGELOG.md        # Log of changes to the project
+├── CONVO.md            # Log of conversation with AI assistant (if applicable)
+├── docker-compose.yml  # Docker Compose for local development orchestration
+├── Dockerfile          # Dockerfile for building the application image
+├── heroku.yml          # Heroku deployment configuration for Docker
+├── PRD.md              # Product Requirements Document
+├── Procfile            # Heroku Procfile (mainly for buildpack deployments, less relevant for Docker)
+├── README.md           # This file
+├── requirements.txt    # Python backend dependencies
+├── runtime.txt         # Python runtime version for Heroku buildpacks
+└── TASKS.md            # Development tasks
+```
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+-   **Node.js and npm**: For the React frontend (npm is used for building the client in Docker stage 1).
+-   **Python 3.11**: For the FastAPI backend (as specified in `runtime.txt` and `Dockerfile`).
+-   **Docker**: For containerizing and running the application locally.
+-   **Docker Compose**: For orchestrating multi-container applications locally.
+
+## Environment Variables
+
+Create a `.env` file in the project root. This file is used by Docker Compose for local development and serves as a reference for Heroku Config Vars.
+
+**Key Variables (refer to or create `.env.example`):**
+
+-   `SECRET_KEY`: A strong secret key for JWT signing (e.g., `openssl rand -hex 32`).
+-   `YOUTUBE_API_KEY`: Your YouTube Data API v3 key (fallback if user doesn't provide one).
+-   `DATABASE_URL`: Database connection string. 
+    *   Local Docker (SQLite fallback): Leave unset or `sqlite:///./test.db` (creates `/app/server/test.db` in container).
+    *   Local Docker (Postgres service): `postgresql://youruser:yourpassword@db:5432/tubetrends_db` (match `docker-compose.yml` service).
+    *   Heroku: Provided by Heroku Postgres add-on.
+-   `REDIS_HOST`: Redis hostname (e.g., `localhost` or `redis` for Docker Compose service). Defaults to `localhost`.
+-   `REDIS_PORT`: Redis port (e.g., `6379`). Defaults to `6379`.
+-   `ACCESS_TOKEN_EXPIRE_MINUTES`: JWT lifetime (e.g., `30`). Defaults to `30`.
+-   `PORT`: Server listening port (e.g., `8000`). For Heroku, set automatically.
+
+**Example `.env` (local SQLite, no external Redis):**
+```
+SECRET_KEY=replace_with_a_strong_random_secret_key
+YOUTUBE_API_KEY=replace_with_your_youtube_api_key
+# DATABASE_URL=  # Leave unset for SQLite in /app/server/test.db inside container
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+PORT=8000
+# REDIS_HOST=localhost # Uncomment if running Redis locally outside compose
+# REDIS_PORT=6379
+```
+
+## Getting Started Locally with Docker
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repo-url> TubeTrends
+    cd TubeTrends
+    ```
+2.  **Set up `.env` file:** Create `.env` in the project root as described above.
+3.  **Build and Run with Docker Compose:**
+    ```bash
+    docker-compose build
+    docker-compose up
+    ```
+    The application (backend API & frontend) will be at `http://localhost:8000` (or your configured `PORT`).
+    API docs: `http://localhost:8000/api/docs`.
+
+4.  **Database Migrations (Alembic - first time/model changes):**
+    Execute migrations inside the running `backend` container:
+    ```bash
+    docker-compose exec backend bash -c "cd server && alembic upgrade head"
+    ```
+5.  **Stopping the application:**
+    ```bash
+    docker-compose down
+    ```
+
+## Deployment to Heroku (Docker & `heroku.yml`)
+
+This project is configured for deploying to Heroku using its Docker container registry via `heroku.yml`.
+
+1.  **Install Heroku CLI and log in.**
+2.  **Create a Heroku app:** `heroku create your-unique-app-name`
+3.  **Provision Add-ons:**
+    *   PostgreSQL: `heroku addons:create heroku-postgresql:hobby-dev -a your-app-name`
+    *   Redis: `heroku addons:create heroku-redis:hobby-dev -a your-app-name`
+    (Heroku sets `DATABASE_URL`, `REDIS_URL` config vars).
+4.  **Set other Heroku Config Vars:**
+    ```bash
+    heroku config:set SECRET_KEY="your_production_secret_key" -a your-app-name
+    heroku config:set YOUTUBE_API_KEY="your_production_youtube_api_key" -a your-app-name
+    heroku config:set ACCESS_TOKEN_EXPIRE_MINUTES="60" -a your-app-name
+    # PORT is set automatically by Heroku.
+    ```
+5.  **Deploy:** Ensure `Dockerfile` and `heroku.yml` are committed.
+    ```bash
+    git push heroku main # Or your deployment branch
+    ```
+    Heroku uses `heroku.yml` to build the Docker image, run `release` commands (like `alembic upgrade head`), and deploy.
+
+## Development without Docker (Alternative / Backend Only)
+
+(Instructions for frontend development are standard for React applications)
+
+1.  Navigate to `server/` directory.
+2.  Create and activate a Python virtual environment (e.g., `python -m venv venv`, `source venv/bin/activate`).
+3.  Install dependencies: `pip install -r ../requirements.txt`.
+4.  Set environment variables (e.g., in your shell or a `server/.env` file loaded by your IDE).
+5.  Run database migrations: `alembic upgrade head` (from `server/` dir).
+6.  Run FastAPI app: `python main.py` (from `server/` dir).
 
 ## API Endpoints
 
-- `/api/trends` - For analyzing YouTube trends (search and analyze trending videos and channels)
-- `/api/compare` - For comparing different niches and their metrics
-- `/api/reports` - Generate and download analysis reports
-- `/api/status` - For checking API status
+Refer to the Swagger UI at `/api/docs` when the application is running for detailed API endpoint information.
 
-## Setup
+## Contributing
 
-### Frontend (React)
-```bash
-# Navigate to client directory
-cd client
+(Guidelines for contributing can be added here if the project becomes open-source.)
 
-# Install dependencies
-npm install
+## License
 
-# Start development server
-npm start
-
-# Build for production
-npm run build
-```
-
-### Backend (FastAPI)
-```bash
-# Navigate to the project root directory (where requirements.txt is located)
-# cd <project_root_directory>
-
-# Create a virtual environment (recommended)
-# python -m venv venv
-# source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Create a .env file in the project root directory
-# Add your YouTube API key to this .env file:
-# YOUTUBE_API_KEY=YOUR_ACTUAL_API_KEY_HERE
-
-# Navigate to server directory to run the app
-cd server
-
-# Start development server
-uvicorn main:app --reload
-```
-
-### YouTube API Key
-1. Visit [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one.
-3. Enable the "YouTube Data API v3" for your project.
-4. Go to "Credentials" and create an API key.
-5. **Important**: Create a file named `.env` in the root directory of this project.
-6. Add your API key to the `.env` file in the following format:
-   `YOUTUBE_API_KEY=YOUR_GENERATED_API_KEY`
-7. For deployed environments like Heroku, set `YOUTUBE_API_KEY` as a config var.
-
-### Deployment
-- The entire application (React frontend and FastAPI backend) is deployed to Heroku.
-- The FastAPI backend serves the built static files of the React frontend.
-- Requires Heroku CLI and Git.
-- Ensure you have a `Procfile` at the root of your project and a `.buildpacks` file specifying Node.js and Python buildpacks.
-- Redis is used for caching and should be configured as a Heroku add-on (e.g., Heroku Redis).
-
-```bash
-# Build the frontend (if not done automatically by Heroku buildpack)
-cd client
-npm install
-npm run build
-cd ..
-
-# Heroku Deployment Steps (general outline)
-# 1. Login to Heroku
-heroku login
-
-# 2. Create a new Heroku app (or use an existing one)
-heroku create your-app-name
-
-# 3. Set necessary Heroku config vars (e.g., YOUTUBE_API_KEY, REDIS_URL, FASTAPI_SECRET_KEY)
-heroku config:set YOUTUBE_API_KEY="your_key"
-heroku config:set REDIS_URL="your_redis_url_from_addon"
-# ... other vars
-
-# 4. Add Heroku buildpacks (if .buildpacks file is not used or needs override)
-heroku buildpacks:add heroku/nodejs --index 1
-heroku buildpacks:add heroku/python --index 2
-
-# 5. Push your code to Heroku
-git push heroku main # or your default branch
-
-# 6. Open your app
-heroku open
-```
-
-## Change Log
-
-- 2024-07-27 HH:MM PKT: Switched to unified Heroku deployment for frontend and backend.
-- 2024-07-27 HH:MM PKT: Switched backend deployment from Render to Heroku (superseded by unified deployment).
-- 2025-05-22 05:10 PKT: [Task 1.1] Initialized project structure with /client, /server, /docs
-- 2025-05-22 05:12 PKT: [Task 1.2] Created initial README.md with overview and setup guide
-- 2025-05-22 05:13 PKT: [Task 1.3] Set up frontend with package.json and dependencies
-- 2025-05-22 05:14 PKT: [Task 1.4] Set up backend with requirements.txt and .env.example
-- 2025-05-22 05:40 PKT: [Task 2.1] Implemented YouTube API integration in youtube_api.py
-- 2025-05-22 05:42 PKT: [Task 2.2] Implemented data processing logic in data_processor.py
-- 2025-05-22 05:45 PKT: [Task 2.3] Implemented report generation in report_generator.py
-- 2025-05-22 06:21 PKT: [Task 2.4] Added Redis caching and quota warnings in cache.py
-- 2025-05-22 06:22 PKT: [Task 2.5] Created FastAPI app with modular endpoints in main.py
-- 2025-05-22 06:26 PKT: [Task 3.1] Set up React app with routing in App.js
-- 2025-05-22 06:27 PKT: [Task 3.2] Added responsive navigation bar with theme toggle in Navbar.js
-- 2025-05-22 06:28 PKT: [Task 3.3] Implemented HomePage with search form and feature overview
-- 2024-07-26 14:50 PKT: [Task 3.6] Implemented Settings page for API key and quota warnings in Settings.js
-- 2024-07-26 14:55 PKT: [Task 3.7] Added reusable chart component in ChartComponent.js
-- 2024-07-26 15:00 PKT: [Task 3.8] Verified existing Tailwind CSS setup (client/src/index.css and tailwind.config.js).
-- 2024-07-26 15:10 PKT: [Task 4.1] Added initial backend unit tests in server/tests/test_api.py and updated requirements.
-- 2024-07-26 15:15 PKT: [Task 4.2] Added initial frontend unit tests for HomePage in client/src/__tests__/Home.test.js.
-- 2024-07-27 HH:MM PKT: [Task 5.1] Configured unified Heroku deployment.
-- 2024-07-26 15:30 PKT: N/A (Backend Heroku config covered by unified deployment)
-- 2024-07-26 16:00 PKT: N/A (Frontend Vercel deployment replaced by unified Heroku)
-- 2024-07-27 HH:MM PKT: [Task 5.4] Deployed full application to Heroku.
-- 2024-07-27 HH:MM PKT: [Task 6.1] Created API documentation in API.md.
-- 2024-07-27 HH:MM PKT: [Task 6.2] Created development documentation in DEVELOPMENT.md.
-- 2024-07-27 HH:MM PKT: [Task 6.3] Created user guide in USER_GUIDE.md.
-- 2024-07-27 HH:MM PKT: [Task 7.1] Verified all app functionality.
-- 2024-07-27 HH:MM PKT: [Task 7.2] Optimized API queries and frontend performance.
-- 2024-07-27 HH:MM PKT: [Task 7.3] Finalized all documentation.
+(A license, e.g., MIT, can be specified here.)
