@@ -1,0 +1,63 @@
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js modules (these should be installed within the Docker image build process)
+node_modules/
+client/node_modules/
+
+# Frontend build artifacts (if they exist on host, they are rebuilt in Docker)
+client/build/
+
+# IDE and OS specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files (should be handled by Heroku config vars or docker-compose env_file)
+.env
+.env.*
+!/.env.example # Keep .env.example if it exists
+
+# Test database (should be managed by migrations)
+test.db 
+*.sqlite3
+
+# Local virtual environments
+.venv/
+env/
+virtualenv/
+
+# Coverage reports
+.coverage
+coverage.xml
+htmlcov/
+
+# Build artifacts (general)
+build/
+dist/
+*.egg-info/
+
+# Documentation build output (if any)
+docs/_build/
+
+# CHANGELOG and CONVO (not needed in image)
+CHANGELOG.md
+CONVO.md
+# PRD.md and TASKS.md are already excluded by custom instructions, but good to list if that wasn't the case
+# PRD.md 
+# TASKS.md 

@@ -197,3 +197,10 @@ tmp/
 *.sublime-project
 *.komodoproject
 *.komodo-workspace
+
+# Local database files (schema managed by Alembic)
+test.db
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal # SQLite journal files

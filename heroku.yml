@@ -1,0 +1,25 @@
+build:
+  docker:
+    web: Dockerfile
+  # If you had other images for other process types, you'd define them here.
+
+# Optional: Configuration for Heroku CI (if you use it)
+# setup:
+#   addons:
+#     - plan: heroku-postgresql
+#       as: DATABASE
+#   config:
+#     S3_BUCKET: my-example-bucket
+
+# Release phase: runs before new version is deployed
+# Ensure alembic is available and DATABASE_URL is set in Heroku config vars.
+release:
+  image: web # Use the same image built for the web process
+  command:
+    # Ensure the working directory for alembic is correct if alembic.ini is in server/
+    # and your Docker WORKDIR is /app. This command assumes alembic can be run from /app/server.
+    - cd server && alembic upgrade head
+
+# Run phase: defines how your web dynos run (already handled by Dockerfile CMD)
+# run:
+#   web: <command is taken from Dockerfile CMD> 
