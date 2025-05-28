@@ -18,8 +18,23 @@ from api.compare import router as compare_router
 from api.reports import router as reports_router
 from api.status import router as status_router
 from api.users import router as users_router
+from api.alerts import router as alerts_router
 from utils.youtube_api import YouTubeApiError # Import the custom exception
 from utils.cache import get_redis_client, REDIS_AVAILABLE, clear_specific_cache
+
+# --- APScheduler Imports ---
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from server.utils.alert_processor import process_all_alerts
+from server.utils.database import SessionLocal # To create a new session for the job
+# --- End APScheduler Imports ---
+
+# --- Rate Limiting Imports ---
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+# If using Redis with slowapi, you might need: from slowapi.extension import RedisStore
+# --- End Rate Limiting Imports ---
 
 # Load environment variables
 load_dotenv()
@@ -74,6 +89,7 @@ app.include_router(trends_router, prefix="/api")
 app.include_router(compare_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
+app.include_router(alerts_router, prefix="/api")
 
 # Serve static files for the React frontend
 # This assumes your React app is built into the `../client/build` directory
@@ -103,14 +119,61 @@ if os.path.exists(BUILD_DIR):
 else:
     print(f"Warning: Frontend build directory not found at {BUILD_DIR}. Frontend will not be served.")
 
+# --- APScheduler Setup ---
+scheduler = AsyncIOScheduler(timezone="UTC")
+
+def run_alert_processing_job():
+    print("APScheduler: Starting job: process_all_alerts")
+    db = SessionLocal()
+    try:
+        process_all_alerts(db)
+        print("APScheduler: Finished job: process_all_alerts")
+    except Exception as e:
+        print(f"APScheduler: Error in job process_all_alerts: {e}")
+    finally:
+        db.close()
+# --- End APScheduler Setup ---
+
+# --- Rate Limiting Setup ---
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+# If using Redis for rate limiting (requires redis_client to be initialized)
+# if REDIS_AVAILABLE and redis_client:
+#     limiter = Limiter(key_func=get_remote_address, storage_uri=f"redis://{redis_client.connection_pool.connection_kwargs.get('host', 'localhost')}:{redis_client.connection_pool.connection_kwargs.get('port', 6379)}")
+# else:
+#     limiter = Limiter(key_func=get_remote_address) # In-memory fallback if Redis not available
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Apply middleware for global rate limiting. 
+# If you want to use @limiter.limit decorator on specific routes only, you might not add this middleware globally.
+# However, for a default limit on all routes, middleware is cleaner.
+app.add_middleware(SlowAPIMiddleware) # This applies default_limits to all routes
+# --- End Rate Limiting Setup ---
+
 @app.on_event("startup")
 async def startup_event():
     if REDIS_AVAILABLE:
         print("Redis connection successful on startup.")
-        # Example: Clear a specific cache on startup if needed
-        # clear_specific_cache("some_prefix_*")
     else:
         print("Redis not available on startup. Cache functionality will be disabled.")
+    
+    # Schedule and start APScheduler
+    # Cron example: scheduler.add_job(run_alert_processing_job, 'cron', hour=3, minute=0) # Run daily at 3 AM UTC
+    # Interval example: Runs every 4 hours
+    scheduler.add_job(run_alert_processing_job, 'interval', hours=4, id="process_alerts_job")
+    try:
+        scheduler.start()
+        print(f"APScheduler started. Job 'process_alerts_job' scheduled to run every 4 hours.")
+        app.state.scheduler = scheduler # Store for graceful shutdown
+    except Exception as e:
+        print(f"Error starting APScheduler: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if hasattr(app.state, 'scheduler') and app.state.scheduler.running:
+        print("APScheduler: Shutting down...")
+        app.state.scheduler.shutdown()
+        print("APScheduler: Shutdown complete.")
 
 # Root endpoint now serves the React App, API docs are at /api/docs
 # The @app.get("/") for API info is effectively replaced by serving index.html
