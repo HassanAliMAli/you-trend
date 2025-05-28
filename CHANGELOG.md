@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `requirements.txt` with `APScheduler` and `slowapi`.
 - Modified `Dockerfile` to use a multi-stage build, incorporating the React client build into the final image.
 - Updated `docker-compose.yml` to use `env_file` for local `.env` loading and removed direct volume mount for `.env`.
+- Changed `/api/trends` (main and /channels) and `/api/compare` endpoints from GET to POST, and updated them to use Pydantic models for request bodies to resolve 405 errors from frontend.
 
 ### Removed
 - Render deployment configuration (`server/render.yml`).
