@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified `Dockerfile` to use a multi-stage build, incorporating the React client build into the final image.
 - Updated `docker-compose.yml` to use `env_file` for local `.env` loading and removed direct volume mount for `.env`.
 - Changed `/api/trends` (main and /channels) and `/api/compare` endpoints from GET to POST, and updated them to use Pydantic models for request bodies to resolve 405 errors from frontend.
+- Corrected Pydantic model definitions in `server/api/trends.py` and `server/api/compare.py` to use `pydantic.Field` instead of `fastapi.Query` for request body fields, and ensured POST endpoints explicitly use `Body(...)` for the request model parameter. This resolves 400 and 422 errors.
 
 ### Removed
 - Render deployment configuration (`server/render.yml`).

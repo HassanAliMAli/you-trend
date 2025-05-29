@@ -5,10 +5,10 @@ This module provides API endpoints for comparing different YouTube niches,
 allowing users to analyze multiple content categories.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends, Body
+from fastapi import APIRouter, HTTPException, Depends, Body
 from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..utils import youtube_api
 from ..utils import data_processor
@@ -22,14 +22,14 @@ router = APIRouter(prefix="/compare", tags=["compare"])
 
 # --- Pydantic Model for POST request body ---
 class CompareNichesRequestBody(BaseModel):
-    niches: str = Query(..., description="Comma-separated list of niches (keywords) to compare. Max 5.")
-    country: str = Query("PK", description="Country code (e.g., 'PK', 'US')")
-    max_results_per_niche: int = Query(10, description="Max videos per niche for analysis (default:10, max:25)", ge=1, le=25)
-    order: str = Query("viewCount", description="Sort order for videos ('viewCount', 'relevance', 'rating', 'date')")
-    published_after: Optional[str] = Query(None, description="Filter videos published after (YYYY-MM-DDTHH:MM:SSZ)")
-    published_before: Optional[str] = Query(None, description="Filter videos published before (YYYY-MM-DDTHH:MM:SSZ)")
-    language: Optional[str] = Query(None, description="Filter videos by language (ISO 639-1 code)")
-    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key")
+    niches: str = Field(..., description="Comma-separated list of niches (keywords) to compare. Max 5.")
+    country: str = Field(default="PK", description="Country code (e.g., 'PK', 'US')")
+    max_results_per_niche: int = Field(default=10, description="Max videos per niche for analysis (default:10, max:25)", ge=1, le=25)
+    order: str = Field(default="viewCount", description="Sort order for videos ('viewCount', 'relevance', 'rating', 'date')")
+    published_after: Optional[str] = Field(default=None, description="Filter videos published after (YYYY-MM-DDTHH:MM:SSZ)")
+    published_before: Optional[str] = Field(default=None, description="Filter videos published before (YYYY-MM-DDTHH:MM:SSZ)")
+    language: Optional[str] = Field(default=None, description="Filter videos by language (ISO 639-1 code)")
+    api_key_query: Optional[str] = Field(default=None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key")
 
     class Config:
         allow_population_by_field_name = True
@@ -37,7 +37,7 @@ class CompareNichesRequestBody(BaseModel):
 
 @router.post("", response_model=None)
 async def compare_niches_endpoint_via_post(
-    request_data: CompareNichesRequestBody,
+    request_data: CompareNichesRequestBody = Body(...),
     db: Session = Depends(database.get_db),
     current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):

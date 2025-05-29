@@ -8,7 +8,7 @@ including video search, trending videos, and trend analysis.
 from fastapi import APIRouter, HTTPException, Query, Depends, Body
 from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Assuming utils are in PYTHONPATH or adjusted relative import if needed
 # For local structure: from ..utils import youtube_api, data_processor
@@ -24,25 +24,25 @@ router = APIRouter(prefix="/trends", tags=["trends"])
 
 # --- Pydantic Models for POST request bodies ---
 class TrendsRequestBody(BaseModel):
-    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's saved key or system key.", alias="api_key")
-    query: Optional[str] = Query(None, description="Search term for videos. If empty, fetches general trending videos.")
-    category: Optional[str] = Query(None, description="Video category ID (used if query is empty for general trending)")
-    country: str = Query("PK", description="Country code (e.g., 'PK', 'US')")
-    duration: Optional[str] = Query(None, description="Duration filter ('Short (< 4 minutes)', 'Medium (4-20 minutes)', 'Long (> 20 minutes)')")
-    max_results: int = Query(10, description="Maximum number of results (default: 10, max: 50)", ge=1, le=50)
-    order: str = Query("viewCount", description="Sort order for search ('viewCount', 'relevance', 'rating', 'date')")
-    published_after: Optional[str] = Query(None, description="Filter videos published after this date (YYYY-MM-DDTHH:MM:SSZ)")
-    published_before: Optional[str] = Query(None, description="Filter videos published before this date (YYYY-MM-DDTHH:MM:SSZ)")
-    language: Optional[str] = Query(None, description="Filter videos relevant to a specific language (ISO 639-1 code)")
+    api_key_query: Optional[str] = Field(default=None, description="Optional: YouTube Data API v3 key. Overrides user's saved key or system key.", alias="api_key")
+    query: Optional[str] = Field(default=None, description="Search term for videos. If empty, fetches general trending videos.")
+    category: Optional[str] = Field(default=None, description="Video category ID (used if query is empty for general trending)")
+    country: str = Field(default="PK", description="Country code (e.g., 'PK', 'US')")
+    duration: Optional[str] = Field(default=None, description="Duration filter ('Short (< 4 minutes)', 'Medium (4-20 minutes)', 'Long (> 20 minutes)')")
+    max_results: int = Field(default=10, description="Maximum number of results (default: 10, max: 50)", ge=1, le=50)
+    order: str = Field(default="viewCount", description="Sort order for search ('viewCount', 'relevance', 'rating', 'date')")
+    published_after: Optional[str] = Field(default=None, description="Filter videos published after this date (YYYY-MM-DDTHH:MM:SSZ)")
+    published_before: Optional[str] = Field(default=None, description="Filter videos published before this date (YYYY-MM-DDTHH:MM:SSZ)")
+    language: Optional[str] = Field(default=None, description="Filter videos relevant to a specific language (ISO 639-1 code)")
 
     class Config:
         allow_population_by_field_name = True
 
 class ChannelsRequestBody(BaseModel):
-    api_key_query: Optional[str] = Query(None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key")
-    query: Optional[str] = Query(None, description="Search term for channels. If empty, this might not yield useful general results without further logic.")
-    country: str = Query("PK", description="Country code (e.g., 'PK', 'US') for search region bias")
-    max_results: int = Query(10, description="Maximum number of channels to return (default: 10, max: 50)", ge=1, le=50)
+    api_key_query: Optional[str] = Field(default=None, description="Optional: YouTube Data API v3 key. Overrides user's or system key.", alias="api_key")
+    query: Optional[str] = Field(default=None, description="Search term for channels. If empty, this might not yield useful general results without further logic.")
+    country: str = Field(default="PK", description="Country code (e.g., 'PK', 'US') for search region bias")
+    max_results: int = Field(default=10, description="Maximum number of channels to return (default: 10, max: 50)", ge=1, le=50)
 
     class Config:
         allow_population_by_field_name = True
@@ -50,7 +50,7 @@ class ChannelsRequestBody(BaseModel):
 
 @router.post("", response_model=None)
 async def get_trends_via_post(
-    request_data: TrendsRequestBody,
+    request_data: TrendsRequestBody = Body(...),
     db: Session = Depends(database.get_db),
     current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):
@@ -137,7 +137,7 @@ async def get_trends_via_post(
 
 @router.post("/channels", response_model=None)
 async def get_trending_channels_via_post(
-    request_data: ChannelsRequestBody,
+    request_data: ChannelsRequestBody = Body(...),
     db: Session = Depends(database.get_db),
     current_user: Optional[UserModel] = Depends(auth.get_current_user_optional)
 ):
