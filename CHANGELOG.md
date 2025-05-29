@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Render deployment configuration (`server/render.yml`).
 - Vercel deployment configuration (`client/vercel.json`).
 - Entire backend test infrastructure (`server/tests/` directory and test-specific dependencies from `requirements.txt`) to rely solely on real-time API calls.
+- Frontend test file `client/src/__tests__/Home.test.js` and its parent directory `client/src/__tests__/` to align with the goal of removing test-specific code.
 
 ### Fixed
 - Added `ajv` as a direct dependency (`"ajv": "8.12.0"`) in `client/package.json` to resolve a build error (`Cannot find module 'ajv/dist/compile/codegen'`) during `npm run build` on Heroku Docker deployment.
