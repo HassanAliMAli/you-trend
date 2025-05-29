@@ -63,6 +63,10 @@ export const ApiProvider = ({ children }) => {
   
   // Load search history from localStorage on component mount
   useEffect(() => {
+    // Log current API key status on mount
+    const currentKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+    console.log(`ApiContext: Provider mounted. Initial API key from localStorage: ${currentKey}`);
+
     const storedHistory = localStorage.getItem(SEARCH_HISTORY_KEY);
     if (storedHistory) {
       try {

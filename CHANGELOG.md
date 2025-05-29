@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Instructions to `README.md` (summary provided separately) for Docker local development and Heroku Docker deployment.
 - SQLite database files (`test.db`, `*.sqlite3`, etc.) to `.gitignore`.
 - Re-created `CONVO.md` to log conversation after rollback.
+- Added console logging in `client/src/contexts/ApiContext.js` to trace API key availability in `localStorage` upon component mount and during API calls to debug `400 Bad Request` errors.
 
 ### Changed
 - Switched to unified Heroku deployment for frontend and backend.
