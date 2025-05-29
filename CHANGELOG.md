@@ -86,6 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added more specific console logging in `client/src/contexts/ApiContext.js` for `saveApiKey` and for API key retrieval within `analyzeTrends` and `compareNiches` (using both `getApiKey()` and direct `localStorage.getItem()`) to further diagnose API key issues.
 - Refactored `client/src/pages/Settings.js` to correctly use `localStorage` (via `ApiContext` functions like `saveApiKey`, `getApiKey`) instead of `sessionStorage` for API key management. This ensures the API key is persisted correctly and available to other parts of the application.
 - Adjusted `Settings.js` to properly use `useApi` hook and interact with `ApiContext` for fetching and displaying quota usage.
+- Enhanced API key saving in `client/src/contexts/ApiContext.js`:
+  - Added `trim()` to `saveApiKey` to remove leading/trailing whitespace from the API key before saving.
+  - Added logging to confirm the API key value immediately after it is set in `localStorage`.
+- Added logging in `client/src/pages/Settings.js` within `handleSaveSettings` to display the API key value being passed to `saveApiKey`.
 
 ## [0.1.0] - 2024-07-26
 ### Added

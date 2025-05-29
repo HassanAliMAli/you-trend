@@ -66,6 +66,7 @@ const SettingsPage = () => {
   const handleSaveSettings = () => {
     // sessionStorage.setItem('youtubeApiKey', localApiKey);
     // setApiKey(localApiKey); // Update context
+    console.log('SettingsPage (handleSaveSettings): Saving API key:', localApiKey); // Log before saving
     saveApiKey(localApiKey); // Use context's save function
     alert('Settings saved! API Key stored in localStorage.');
     // Here you might also trigger a re-fetch of quota or other API-dependent data

@@ -518,11 +518,24 @@ export const ApiProvider = ({ children }) => {
     }
   };
 
-  // API Key management
+  // Save API key to localStorage
   const saveApiKey = (apiKey) => {
-    localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
-    console.log('ApiContext: saveApiKey executed. Key set to:', apiKey); // New log
-    // We don't need setApiKey since we're not tracking it in state
+    console.log('ApiContext (saveApiKey): Attempting to save API key:', apiKey);
+    const trimmedApiKey = apiKey ? apiKey.trim() : ''; // Trim whitespace
+    if (trimmedApiKey) {
+      localStorage.setItem(API_KEY_STORAGE_KEY, trimmedApiKey);
+      console.log('ApiContext (saveApiKey): API key saved to localStorage. Value now:', localStorage.getItem(API_KEY_STORAGE_KEY));
+    } else {
+      localStorage.removeItem(API_KEY_STORAGE_KEY); // Remove if key is empty after trim
+      console.log('ApiContext (saveApiKey): API key was empty or whitespace, removed from localStorage.');
+    }
+    // Optionally, trigger a quota fetch or other updates here
+    // For instance, if a key is newly added or changed:
+    if (trimmedApiKey) {
+      getQuotaUsage(); // Attempt to fetch quota with the new key
+    } else {
+      setQuotaUsage(null); // Clear quota if key is removed
+    }
   };
   
   const getApiKey = () => {
