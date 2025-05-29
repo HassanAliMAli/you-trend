@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Body
 from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+import os
 
 # Assuming utils are in PYTHONPATH or adjusted relative import if needed
 # For local structure: from ..utils import youtube_api, data_processor
@@ -62,6 +63,18 @@ async def get_trends_via_post(
     final_api_key_to_use = request_data.api_key_query
     if not final_api_key_to_use and current_user and current_user.youtube_api_key:
         final_api_key_to_use = current_user.youtube_api_key
+    
+    # Explicitly check for API key before proceeding
+    if not final_api_key_to_use and not os.getenv('YOUTUBE_API_KEY'):
+        raise HTTPException(
+            status_code=400,
+            detail="YouTube API key is missing. Please provide it in the request, ensure it's saved in your user profile, or set it as an environment variable (YOUTUBE_API_KEY) on the server."
+        )
+    # If final_api_key_to_use is still None here, it means it wasn't in request or user profile,
+    # so the youtube_api functions will rely on the environment variable or raise an error.
+    # To be absolutely sure, we can re-assign from environment if it was not in request or profile
+    if not final_api_key_to_use:
+        final_api_key_to_use = os.getenv('YOUTUBE_API_KEY') # This ensures it's passed to youtube_api functions
 
     try:
         videos: List[Dict[str, Any]] = []
@@ -152,6 +165,18 @@ async def get_trending_channels_via_post(
     if not final_api_key_to_use and current_user and current_user.youtube_api_key:
         final_api_key_to_use = current_user.youtube_api_key
 
+    # Explicitly check for API key before proceeding
+    if not final_api_key_to_use and not os.getenv('YOUTUBE_API_KEY'):
+        raise HTTPException(
+            status_code=400,
+            detail="YouTube API key is missing. Please provide it in the request, ensure it's saved in your user profile, or set it as an environment variable (YOUTUBE_API_KEY) on the server."
+        )
+    # If final_api_key_to_use is still None here, it means it wasn't in request or user profile,
+    # so the youtube_api functions will rely on the environment variable or raise an error.
+    # To be absolutely sure, we can re-assign from environment if it was not in request or profile
+    if not final_api_key_to_use:
+        final_api_key_to_use = os.getenv('YOUTUBE_API_KEY') # This ensures it's passed to youtube_api functions
+
     try:
         channels_details = youtube_api.search_channels(
             query=request_data.query,
@@ -217,6 +242,18 @@ async def get_video_categories_endpoint(
     final_api_key_to_use = api_key_query
     if not final_api_key_to_use and current_user and current_user.youtube_api_key:
         final_api_key_to_use = current_user.youtube_api_key
+
+    # Explicitly check for API key before proceeding
+    if not final_api_key_to_use and not os.getenv('YOUTUBE_API_KEY'):
+        raise HTTPException(
+            status_code=400,
+            detail="YouTube API key is missing. Please provide it in the request, ensure it's saved in your user profile, or set it as an environment variable (YOUTUBE_API_KEY) on the server."
+        )
+    # If final_api_key_to_use is still None here, it means it wasn't in request or user profile,
+    # so the youtube_api functions will rely on the environment variable or raise an error.
+    # To be absolutely sure, we can re-assign from environment if it was not in request or profile
+    if not final_api_key_to_use:
+        final_api_key_to_use = os.getenv('YOUTUBE_API_KEY') # This ensures it's passed to youtube_api functions
 
     try:
         categories = youtube_api.get_video_categories(region_code=country, api_key=final_api_key_to_use)

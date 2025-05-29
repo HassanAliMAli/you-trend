@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `python-multipart` to `requirements.txt` to resolve `RuntimeError` for form data handling in FastAPI.
 - Defined `get_current_active_user` function and `oauth2_scheme` in `server/utils/auth.py` to resolve `AttributeError` in `alerts.py`.
 - Corrected import in `server/main.py` from `get_redis_client` to `redis_client` and `clear_specific_cache` to `clear_cache` to match `server/utils/cache.py` and resolve `ImportError`.
+- Added explicit checks in `/api/trends` and `/api/compare` endpoints to ensure a YouTube API key is available (from request, user profile, or environment variable) before attempting to call the YouTube API. If no key is found, a 400 Bad Request error is returned with a clear message. This directly addresses the 'YouTube API key must be provided' errors and makes API key issues easier to diagnose.
+- **Note for Frontend**: The `/api/compare` endpoint expects the `niches` field in its POST request body to be a single string with niche keywords separated by commas (e.g., `"gaming,cooking,travel"`). The frontend needs to ensure it sends data in this format to avoid 422 Unprocessable Entity errors.
 
 ## [0.1.0] - 2024-07-26
 ### Added
