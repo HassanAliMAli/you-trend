@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The `422` error on `/api/compare` is due to the frontend sending data in a format that doesn't match the `CompareNichesRequestBody` Pydantic model (likely the `niches` field not being a comma-separated string, or other validation failures). **Action Required**: Frontend needs to ensure the `niches` field is a single comma-separated string (e.g., `"gaming,tech"`) and all other required fields are sent correctly.
 - In `client/src/contexts/ApiContext.js` `compareNiches` function: converted `niches` array to a comma-separated string, removed GET fallback logic, and ensured mock data generation is removed.
 - In `client/src/contexts/ApiContext.js` `analyzeTrends` function: mapped frontend `duration` and `order` values to API-expected formats, ensured `max_results` is an integer, and standardized `country` parameter handling.
+- Refactored `requestParams` construction in `analyzeTrends` and `compareNiches` in `client/src/contexts/ApiContext.js` for clarity and to ensure correct API key usage. Added console logging for API key retrieval in these functions for debugging.
 
 ## [0.1.0] - 2024-07-26
 ### Added

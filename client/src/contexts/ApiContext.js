@@ -117,8 +117,8 @@ export const ApiProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     const apiKey = getApiKey(); // Get API key
+    console.log('Retrieved API Key for analyzeTrends:', apiKey); // Log the retrieved key
 
-    // Map frontend duration to API expected values or null
     let apiDuration = null;
     if (params.duration && params.duration !== 'Any Duration') {
       const durationMapping = {
@@ -129,8 +129,7 @@ export const ApiProvider = ({ children }) => {
       apiDuration = durationMapping[params.duration] || null;
     }
 
-    // Map frontend order to API expected values
-    let apiOrder = 'viewCount'; // Default
+    let apiOrder = 'viewCount'; 
     if (params.order) {
       const orderMapping = {
         'View Count': 'viewCount',
@@ -141,31 +140,28 @@ export const ApiProvider = ({ children }) => {
       apiOrder = orderMapping[params.order] || 'viewCount';
     }
 
+    const requestParams = {
+      query: params.query,
+      max_results: params.max_results ? parseInt(params.max_results, 10) : 10,
+      country: params.country || 'US', // Backend handles 'Global' specific interpretation
+      api_key: apiKey, // Use the retrieved apiKey
+      duration: apiDuration,
+      order: apiOrder,
+      category: params.category || null,
+      published_after: params.published_after || null,
+      published_before: params.published_before || null,
+      language: params.language || null
+    };
+
+    // Remove any top-level undefined properties before sending
+    Object.keys(requestParams).forEach(key => {
+        if (requestParams[key] === undefined) {
+            requestParams[key] = null; // Or delete requestParams[key]; Pydantic usually handles None/null for Optional fields
+        }
+    });
+
     try {
-      console.log('ApiContext: original params for trends:', params);
-      
-      const requestParams = { 
-        ...params, 
-        api_key: apiKey, 
-        duration: apiDuration, // Use mapped duration
-        order: apiOrder,       // Use mapped order
-        // Ensure country is a string, default if not provided or 'Global' (backend handles 'Global' by defaulting to US or omitting)
-        country: params.country || 'US' 
-      };
-      // Remove original duration and order if they were in params to avoid conflict
-      delete requestParams.duration; 
-      delete requestParams.order;
-      // Add them back with correct naming for the Pydantic model
-      requestParams.duration = apiDuration;
-      requestParams.order = apiOrder;
-
-      // Ensure max_results is an integer
-      if (requestParams.max_results) {
-        requestParams.max_results = parseInt(requestParams.max_results, 10);
-      }
-
       console.log('ApiContext: sending requestParams for trends:', requestParams);
-      
       const response = await api.post('/api/trends', requestParams);
       setQuotaUsage(response.data.quota_usage);
       
@@ -284,17 +280,27 @@ export const ApiProvider = ({ children }) => {
   const compareNiches = async (params) => {
     setLoading(true);
     setError(null);
-    console.log('Compare niches called with params:', params);
     const apiKey = getApiKey(); // Get API key
+    console.log('Retrieved API Key for compareNiches:', apiKey); // Log the retrieved key
     
-    try {
-      const requestParams = { 
-        ...params, 
-        api_key: apiKey,
-        niches: params.niches ? params.niches.join(',') : '' // Convert niches array to comma-separated string
-      };
+    const requestParams = { 
+      // Explicitly list fields for CompareNichesRequestBody
+      niches: params.niches ? params.niches.join(',') : '',
+      max_results: params.max_results ? parseInt(params.max_results, 10) : 10,
+      country: params.country || 'US',
+      api_key: apiKey, // Use the retrieved apiKey
+      // Add other fields from CompareNichesRequestBody if they exist in `params`
+      // Example: some_other_field: params.some_other_field || null
+    };
 
-      // Directly attempt the POST request
+    // Remove any top-level undefined properties before sending
+    Object.keys(requestParams).forEach(key => {
+        if (requestParams[key] === undefined) {
+            requestParams[key] = null;
+        }
+    });
+
+    try {
       console.log('Attempting POST request to /api/compare with params:', requestParams);
       const response = await api.post('/api/compare', requestParams);
       console.log('POST request successful');
