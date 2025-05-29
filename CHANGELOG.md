@@ -79,6 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Investigated Heroku logs showing `400 Bad Request` for `/api/trends` and `422 Unprocessable Entity` for `/api/compare`.
   - The `400` error on `/api/trends` is due to the YouTube API key not being found from any available source (request body, user profile, or environment variable). **Action Required**: Ensure the `YOUTUBE_API_KEY` environment variable is set in Heroku app settings as a global fallback. Frontend should also ideally send an `api_key` in the POST request body if provided by the user.
   - The `422` error on `/api/compare` is due to the frontend sending data in a format that doesn't match the `CompareNichesRequestBody` Pydantic model (likely the `niches` field not being a comma-separated string, or other validation failures). **Action Required**: Frontend needs to ensure the `niches` field is a single comma-separated string (e.g., `"gaming,tech"`) and all other required fields are sent correctly.
+- In `client/src/contexts/ApiContext.js` `compareNiches` function: converted `niches` array to a comma-separated string, removed GET fallback logic, and ensured mock data generation is removed.
+- In `client/src/contexts/ApiContext.js` `analyzeTrends` function: mapped frontend `duration` and `order` values to API-expected formats, ensured `max_results` is an integer, and standardized `country` parameter handling.
 
 ## [0.1.0] - 2024-07-26
 ### Added

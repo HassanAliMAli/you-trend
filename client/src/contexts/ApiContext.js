@@ -118,15 +118,54 @@ export const ApiProvider = ({ children }) => {
     setError(null);
     const apiKey = getApiKey(); // Get API key
 
-    try {
-      // Pass parameters through directly without transformation
-      // The TrendsPage component now sends max_results directly with the correct naming
-      
-      console.log('ApiContext: passing params directly to API:', params);
-      console.log('ApiContext: max_results value:', params.max_results);
-      
-      const requestParams = { ...params, api_key: apiKey }; // Add API key to request
+    // Map frontend duration to API expected values or null
+    let apiDuration = null;
+    if (params.duration && params.duration !== 'Any Duration') {
+      const durationMapping = {
+        'Short (< 4 minutes)': 'short',
+        'Medium (4-20 minutes)': 'medium',
+        'Long (> 20 minutes)': 'long'
+      };
+      apiDuration = durationMapping[params.duration] || null;
+    }
 
+    // Map frontend order to API expected values
+    let apiOrder = 'viewCount'; // Default
+    if (params.order) {
+      const orderMapping = {
+        'View Count': 'viewCount',
+        'Relevance': 'relevance',
+        'Rating': 'rating',
+        'Date': 'date'
+      };
+      apiOrder = orderMapping[params.order] || 'viewCount';
+    }
+
+    try {
+      console.log('ApiContext: original params for trends:', params);
+      
+      const requestParams = { 
+        ...params, 
+        api_key: apiKey, 
+        duration: apiDuration, // Use mapped duration
+        order: apiOrder,       // Use mapped order
+        // Ensure country is a string, default if not provided or 'Global' (backend handles 'Global' by defaulting to US or omitting)
+        country: params.country || 'US' 
+      };
+      // Remove original duration and order if they were in params to avoid conflict
+      delete requestParams.duration; 
+      delete requestParams.order;
+      // Add them back with correct naming for the Pydantic model
+      requestParams.duration = apiDuration;
+      requestParams.order = apiOrder;
+
+      // Ensure max_results is an integer
+      if (requestParams.max_results) {
+        requestParams.max_results = parseInt(requestParams.max_results, 10);
+      }
+
+      console.log('ApiContext: sending requestParams for trends:', requestParams);
+      
       const response = await api.post('/api/trends', requestParams);
       setQuotaUsage(response.data.quota_usage);
       
@@ -249,75 +288,80 @@ export const ApiProvider = ({ children }) => {
     const apiKey = getApiKey(); // Get API key
     
     try {
-      // First, try to use the GET endpoint which is more reliable
-      // This is a fallback mechanism to avoid timeout issues
-      let response;
-      let isUsingFallback = false;
-      
-      const requestParams = { ...params, api_key: apiKey }; // Add API key to request
+      const requestParams = { 
+        ...params, 
+        api_key: apiKey,
+        niches: params.niches ? params.niches.join(',') : '' // Convert niches array to comma-separated string
+      };
 
-      try {
-        // First try the normal POST endpoint using our API instance
-        console.log('Attempting POST request to /api/compare');
-        
-        response = await api.post('/api/compare', requestParams);
-        
-        console.log('POST request successful');
-      } catch (postError) {
-        console.warn('POST request failed, trying GET fallback:', postError.message);
-        
-        // If POST fails, fall back to the GET endpoint
-        isUsingFallback = true;
-        console.log('Attempting GET request to /api/compare');
-        
-        // Use our configured API instance for consistency
-        response = await api.get('/api/compare');
-        
-        console.log('GET fallback successful');
-      }
+      // Directly attempt the POST request
+      console.log('Attempting POST request to /api/compare with params:', requestParams);
+      const response = await api.post('/api/compare', requestParams);
+      console.log('POST request successful');
       
       console.log('Received comparison response:', response.data);
       
       // Ensure we have valid response data
       if (!response.data || !response.data.results) {
-        throw new Error('Invalid response data structure');
+        // It's possible the backend sends an empty results array for valid but no-data scenarios
+        // but top-level response.data must exist. results can be an empty object/array.
+        if (response.data && typeof response.data.results === 'object') {
+            // This is acceptable, proceed
+        } else {
+            throw new Error('Invalid response data structure');
+        }
       }
       
       // Map the response data to a more usable format for the frontend
       const results = {};
-      
+      const responseNiches = params.niches || []; // Use original niches for keys
+
       // Process the niches data
+      // The backend is expected to return results in the same order as the input niches string
       if (Array.isArray(response.data.results)) {
-        // If we get back results that don't match the requested niches,
-        // we need to make sure we're using the correct niche names
-        const niches = params.niches || [];
-        
-        response.data.results.forEach((niche, index) => {
-          // Use the original niche name if available, otherwise use the one from the response
-          const nicheKey = (index < niches.length) ? niches[index] : niche.niche;
+        response.data.results.forEach((nicheData, index) => {
+          const nicheKey = responseNiches[index] || nicheData.niche || `niche_${index}`;
           
           results[nicheKey] = {
             niche: nicheKey,
             metrics: {
-              avg_views: niche.views,
-              avg_engagement: niche.engagement,
-              video_count: niche.videoCount
+              avg_views: nicheData.views,
+              avg_engagement: nicheData.engagement,
+              video_count: nicheData.videoCount
             },
-            keywords: niche.keywords?.map(kw => 
+            keywords: nicheData.keywords?.map(kw => 
               typeof kw === 'string' ? kw : (kw.keyword || kw.name || ''))
               || []
           };
         });
+      } else if (typeof response.data.results === 'object' && response.data.results !== null) {
+        // Handle if backend returns results as an object keyed by niche name
+         for (const key in response.data.results) {
+            if (responseNiches.includes(key)) { // Ensure we only process requested niches
+                const nicheData = response.data.results[key];
+                 results[key] = {
+                    niche: key,
+                    metrics: {
+                        avg_views: nicheData.views,
+                        avg_engagement: nicheData.engagement,
+                        video_count: nicheData.videoCount
+                    },
+                    keywords: nicheData.keywords?.map(kw => 
+                        typeof kw === 'string' ? kw : (kw.keyword || kw.name || ''))
+                        || []
+                };
+            }
+        }
       }
       
       console.log('Processed comparison results:', results);
       
       const processedData = {
-        niches: params.niches,
+        niches: responseNiches, // Use the original array of niches
         results: results,
-        is_mock: response.data.mock_data || isUsingFallback,
+        is_mock: response.data.mock_data || false, // Ensure is_mock is explicitly false if not from backend
         timestamp: new Date().toISOString(),
-        message: response.data.message || (isUsingFallback ? 'Using fallback data' : ''),
+        message: response.data.message || '',
         comparative_analysis: {
           viewsRatio: calculateViewsRatio(Object.values(results)),
           engagementDifference: calculateEngagementDifference(Object.values(results)),
@@ -332,9 +376,9 @@ export const ApiProvider = ({ children }) => {
       return processedData;
     } catch (err) {
       console.error('Error comparing niches:', err);
-      setError(err.message || 'Failed to compare niches');
+      setError(err.response?.data?.detail || err.message || 'Failed to compare niches');
       setLoading(false);
-      
+      // Ensure NO MOCK DATA is returned. The component should handle the error state.
       throw err;
     }
   };
