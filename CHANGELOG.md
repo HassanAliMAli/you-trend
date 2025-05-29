@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.dockerignore` file to optimize Docker build context.
 - Instructions to `README.md` (summary provided separately) for Docker local development and Heroku Docker deployment.
 - SQLite database files (`test.db`, `*.sqlite3`, etc.) to `.gitignore`.
+- Re-created `CONVO.md` to log conversation after rollback.
 
 ### Changed
 - Switched to unified Heroku deployment for frontend and backend.
@@ -53,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vercel deployment configuration (`client/vercel.json`).
 - Entire backend test infrastructure (`server/tests/` directory and test-specific dependencies from `requirements.txt`) to rely solely on real-time API calls.
 - Frontend test file `client/src/__tests__/Home.test.js` and its parent directory `client/src/__tests__/` to align with the goal of removing test-specific code.
+- All locally added test files (`server/tests/utils/*` and `server/tests/api/*`) due to rollback to commit `96ab9f3`.
+- Locally created `CONVO.md` due to rollback (re-created subsequently).
 
 ### Fixed
 - Added `ajv` as a direct dependency (`"ajv": "8.12.0"`) in `client/package.json` to resolve a build error (`Cannot find module 'ajv/dist/compile/codegen'`) during `npm run build` on Heroku Docker deployment.
