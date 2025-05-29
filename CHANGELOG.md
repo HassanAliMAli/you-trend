@@ -84,6 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In `client/src/contexts/ApiContext.js` `analyzeTrends` function: mapped frontend `duration` and `order` values to API-expected formats, ensured `max_results` is an integer, and standardized `country` parameter handling.
 - Refactored `requestParams` construction in `analyzeTrends` and `compareNiches` in `client/src/contexts/ApiContext.js` for clarity and to ensure correct API key usage. Added console logging for API key retrieval in these functions for debugging.
 - Added more specific console logging in `client/src/contexts/ApiContext.js` for `saveApiKey` and for API key retrieval within `analyzeTrends` and `compareNiches` (using both `getApiKey()` and direct `localStorage.getItem()`) to further diagnose API key issues.
+- Refactored `client/src/pages/Settings.js` to correctly use `localStorage` (via `ApiContext` functions like `saveApiKey`, `getApiKey`) instead of `sessionStorage` for API key management. This ensures the API key is persisted correctly and available to other parts of the application.
+- Adjusted `Settings.js` to properly use `useApi` hook and interact with `ApiContext` for fetching and displaying quota usage.
 
 ## [0.1.0] - 2024-07-26
 ### Added
