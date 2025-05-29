@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected import in `server/main.py` from `get_redis_client` to `redis_client` and `clear_specific_cache` to `clear_cache` to match `server/utils/cache.py` and resolve `ImportError`.
 - Added explicit checks in `/api/trends` and `/api/compare` endpoints to ensure a YouTube API key is available (from request, user profile, or environment variable) before attempting to call the YouTube API. If no key is found, a 400 Bad Request error is returned with a clear message. This directly addresses the 'YouTube API key must be provided' errors and makes API key issues easier to diagnose.
 - **Note for Frontend**: The `/api/compare` endpoint expects the `niches` field in its POST request body to be a single string with niche keywords separated by commas (e.g., `"gaming,cooking,travel"`). The frontend needs to ensure it sends data in this format to avoid 422 Unprocessable Entity errors.
+- Investigated potential mock data usage based on search results. Confirmed that a comment in `server/utils/data_processor.py` mentioning "mock channel objects" was misleading and not indicative of actual mock data usage; the code processes real API data. No other backend mock data was found. Frontend test files and a UI fallback mechanism with sample data structure in `client/src/contexts/ApiContext.js` were noted and await user decision for removal/modification.
 
 ## [0.1.0] - 2024-07-26
 ### Added
