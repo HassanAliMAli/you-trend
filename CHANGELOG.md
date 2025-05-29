@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `docker-compose.yml` to use `env_file` for local `.env` loading and removed direct volume mount for `.env`.
 - Changed `/api/trends` (main and /channels) and `/api/compare` endpoints from GET to POST, and updated them to use Pydantic models for request bodies to resolve 405 errors from frontend.
 - Corrected Pydantic model definitions in `server/api/trends.py` and `server/api/compare.py` to use `pydantic.Field` instead of `fastapi.Query` for request body fields, and ensured POST endpoints explicitly use `Body(...)` for the request model parameter. This resolves 400 and 422 errors.
+- Updated `client/src/contexts/ApiContext.js` to automatically include the stored API key in `analyzeTrends` and `compareNiches` requests.
 
 ### Removed
 - Render deployment configuration (`server/render.yml`).
@@ -56,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend test file `client/src/__tests__/Home.test.js` and its parent directory `client/src/__tests__/` to align with the goal of removing test-specific code.
 - All locally added test files (`server/tests/utils/*` and `server/tests/api/*`) due to rollback to commit `96ab9f3`.
 - Locally created `CONVO.md` due to rollback (re-created subsequently).
+- Deleted `CONVO.md` file as per user request.
+- Removed emergency mock data fallback from `compareNiches` function in `client/src/contexts/ApiContext.js` to prevent displaying sample data on API errors.
 
 ### Fixed
 - Added `ajv` as a direct dependency (`"ajv": "8.12.0"`) in `client/package.json` to resolve a build error (`Cannot find module 'ajv/dist/compile/codegen'`) during `npm run build` on Heroku Docker deployment.

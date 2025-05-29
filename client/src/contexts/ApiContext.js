@@ -116,7 +116,8 @@ export const ApiProvider = ({ children }) => {
   const analyzeTrends = async (params) => {
     setLoading(true);
     setError(null);
-    
+    const apiKey = getApiKey(); // Get API key
+
     try {
       // Pass parameters through directly without transformation
       // The TrendsPage component now sends max_results directly with the correct naming
@@ -124,7 +125,9 @@ export const ApiProvider = ({ children }) => {
       console.log('ApiContext: passing params directly to API:', params);
       console.log('ApiContext: max_results value:', params.max_results);
       
-      const response = await api.post('/api/trends', params);
+      const requestParams = { ...params, api_key: apiKey }; // Add API key to request
+
+      const response = await api.post('/api/trends', requestParams);
       setQuotaUsage(response.data.quota_usage);
       
       // Process the data to ensure all tabs are properly organized for exporting
@@ -243,6 +246,7 @@ export const ApiProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     console.log('Compare niches called with params:', params);
+    const apiKey = getApiKey(); // Get API key
     
     try {
       // First, try to use the GET endpoint which is more reliable
@@ -250,11 +254,13 @@ export const ApiProvider = ({ children }) => {
       let response;
       let isUsingFallback = false;
       
+      const requestParams = { ...params, api_key: apiKey }; // Add API key to request
+
       try {
         // First try the normal POST endpoint using our API instance
         console.log('Attempting POST request to /api/compare');
         
-        response = await api.post('/api/compare', params);
+        response = await api.post('/api/compare', requestParams);
         
         console.log('POST request successful');
       } catch (postError) {
@@ -328,47 +334,6 @@ export const ApiProvider = ({ children }) => {
       console.error('Error comparing niches:', err);
       setError(err.message || 'Failed to compare niches');
       setLoading(false);
-      
-      // Create mock data as a last resort fallback
-      if (params.niches && params.niches.length > 0) {
-        console.log('Creating emergency mock data for UI');
-        
-        // Completely static emergency fallback data so UI doesn't break
-        const mockData = {
-          niches: params.niches,
-          results: {},
-          is_mock: true,
-          timestamp: new Date().toISOString(),
-          message: 'Error connecting to server - showing emergency mock data',
-          comparative_analysis: {
-            viewsRatio: '1.5',
-            engagementDifference: '2.5%',
-            keywordOverlap: [],
-            recommendedApproach: 'Unable to provide recommendations due to connection error'
-          }
-        };
-        
-        // Generate mock data for each niche
-        params.niches.forEach(niche => {
-          mockData.results[niche] = {
-            niche: niche,
-            metrics: {
-              avg_views: Math.floor(Math.random() * 500000) + 10000,
-              avg_engagement: (Math.random() * 0.1) + 0.01,
-              video_count: Math.floor(Math.random() * 20) + 5
-            },
-            keywords: [
-              `${niche} tips`, 
-              `best ${niche}`, 
-              `${niche} tutorial`, 
-              `${niche} ideas`, 
-              `${niche} advice`
-            ]
-          };
-        });
-        
-        return mockData;
-      }
       
       throw err;
     }
