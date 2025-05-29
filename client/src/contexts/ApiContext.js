@@ -116,8 +116,13 @@ export const ApiProvider = ({ children }) => {
   const analyzeTrends = async (params) => {
     setLoading(true);
     setError(null);
-    const apiKey = getApiKey(); // Get API key
-    console.log('Retrieved API Key for analyzeTrends:', apiKey); // Log the retrieved key
+    // const apiKey = getApiKey(); // Get API key
+    // console.log('Retrieved API Key for analyzeTrends:', apiKey); // Log the retrieved key
+    const apiKeyFromGetter = getApiKey();
+    const apiKeyDirectly = localStorage.getItem(API_KEY_STORAGE_KEY); // Direct check
+    console.log('ApiContext (analyzeTrends): Key from getApiKey():', apiKeyFromGetter);
+    console.log('ApiContext (analyzeTrends): Key directly from localStorage.getItem():', apiKeyDirectly);
+    const apiKey = apiKeyDirectly; // Use the direct value for this request
 
     let apiDuration = null;
     if (params.duration && params.duration !== 'Any Duration') {
@@ -280,8 +285,13 @@ export const ApiProvider = ({ children }) => {
   const compareNiches = async (params) => {
     setLoading(true);
     setError(null);
-    const apiKey = getApiKey(); // Get API key
-    console.log('Retrieved API Key for compareNiches:', apiKey); // Log the retrieved key
+    // const apiKey = getApiKey(); // Get API key
+    // console.log('Retrieved API Key for compareNiches:', apiKey); // Log the retrieved key
+    const apiKeyFromGetter = getApiKey();
+    const apiKeyDirectly = localStorage.getItem(API_KEY_STORAGE_KEY); // Direct check
+    console.log('ApiContext (compareNiches): Key from getApiKey():', apiKeyFromGetter);
+    console.log('ApiContext (compareNiches): Key directly from localStorage.getItem():', apiKeyDirectly);
+    const apiKey = apiKeyDirectly; // Use the direct value for this request
     
     const requestParams = { 
       // Explicitly list fields for CompareNichesRequestBody
@@ -507,6 +517,7 @@ export const ApiProvider = ({ children }) => {
   // API Key management
   const saveApiKey = (apiKey) => {
     localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+    console.log('ApiContext: saveApiKey executed. Key set to:', apiKey); // New log
     // We don't need setApiKey since we're not tracking it in state
   };
   

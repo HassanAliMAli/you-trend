@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In `client/src/contexts/ApiContext.js` `compareNiches` function: converted `niches` array to a comma-separated string, removed GET fallback logic, and ensured mock data generation is removed.
 - In `client/src/contexts/ApiContext.js` `analyzeTrends` function: mapped frontend `duration` and `order` values to API-expected formats, ensured `max_results` is an integer, and standardized `country` parameter handling.
 - Refactored `requestParams` construction in `analyzeTrends` and `compareNiches` in `client/src/contexts/ApiContext.js` for clarity and to ensure correct API key usage. Added console logging for API key retrieval in these functions for debugging.
+- Added more specific console logging in `client/src/contexts/ApiContext.js` for `saveApiKey` and for API key retrieval within `analyzeTrends` and `compareNiches` (using both `getApiKey()` and direct `localStorage.getItem()`) to further diagnose API key issues.
 
 ## [0.1.0] - 2024-07-26
 ### Added
