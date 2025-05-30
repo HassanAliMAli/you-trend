@@ -18,4 +18,10 @@
 - User provided console log showing `Error while trying to use the following icon from the Manifest: ...logo192.png`.
 - Identified that `logo192.png` and `logo512.png` are missing from `client/public` directory.
 - Removed references to the missing icons from `client/public/manifest.json` to resolve the console error.
+- Updated `CHANGELOG.md`.
+- User provided new console logs still showing the icon error and `api_key: null` issue.
+- Discussed that the icon error is highly likely due to browser caching of the old `manifest.json`.
+- Reviewed `ApiContext.js` and `Settings.js` for API key logic. The saving/loading logic appears sound.
+- Hypothesized that API key persistence issues might be due to browser extensions, specific browser settings, or subtle React state/lifecycle interactions, as the core code for `localStorage` is straightforward.
+- Simplified API key retrieval in `analyzeTrends` and `compareNiches` in `ApiContext.js` for consistency and updated logging.
 - Updated `CHANGELOG.md`. 

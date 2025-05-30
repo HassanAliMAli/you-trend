@@ -120,13 +120,11 @@ export const ApiProvider = ({ children }) => {
   const analyzeTrends = async (params) => {
     setLoading(true);
     setError(null);
-    // const apiKey = getApiKey(); // Get API key
-    // console.log('Retrieved API Key for analyzeTrends:', apiKey); // Log the retrieved key
-    const apiKeyFromGetter = getApiKey();
-    const apiKeyDirectly = localStorage.getItem(API_KEY_STORAGE_KEY); // Direct check
-    console.log('ApiContext (analyzeTrends): Key from getApiKey():', apiKeyFromGetter);
-    console.log('ApiContext (analyzeTrends): Key directly from localStorage.getItem():', apiKeyDirectly);
-    const apiKey = apiKeyDirectly; // Use the direct value for this request
+    const apiKey = getApiKey(); // Get API key using the context's getter
+    // Log the retrieved key. This is important for debugging.
+    console.log('ApiContext (analyzeTrends): API key from getApiKey():', apiKey);
+    // Optional: For one more debug cycle, verify directly from localStorage.
+    // console.log('ApiContext (analyzeTrends): API key directly from localStorage.getItem():', localStorage.getItem(API_KEY_STORAGE_KEY));
 
     let apiDuration = null;
     if (params.duration && params.duration !== 'Any Duration') {
@@ -289,14 +287,12 @@ export const ApiProvider = ({ children }) => {
   const compareNiches = async (params) => {
     setLoading(true);
     setError(null);
-    // const apiKey = getApiKey(); // Get API key
-    // console.log('Retrieved API Key for compareNiches:', apiKey); // Log the retrieved key
-    const apiKeyFromGetter = getApiKey();
-    const apiKeyDirectly = localStorage.getItem(API_KEY_STORAGE_KEY); // Direct check
-    console.log('ApiContext (compareNiches): Key from getApiKey():', apiKeyFromGetter);
-    console.log('ApiContext (compareNiches): Key directly from localStorage.getItem():', apiKeyDirectly);
-    const apiKey = apiKeyDirectly; // Use the direct value for this request
-    
+    const apiKey = getApiKey(); // Get API key using the context's getter
+    // Log the retrieved key. This is important for debugging.
+    console.log('ApiContext (compareNiches): API key from getApiKey():', apiKey);
+    // Optional: For one more debug cycle, verify directly from localStorage.
+    // console.log('ApiContext (compareNiches): API key directly from localStorage.getItem():', localStorage.getItem(API_KEY_STORAGE_KEY));
+
     const requestParams = { 
       // Explicitly list fields for CompareNichesRequestBody
       niches: params.niches ? params.niches.join(',') : '',

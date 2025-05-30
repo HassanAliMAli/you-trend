@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `/api/trends` (main and /channels) and `/api/compare` endpoints from GET to POST, and updated them to use Pydantic models for request bodies to resolve 405 errors from frontend.
 - Corrected Pydantic model definitions in `server/api/trends.py` and `server/api/compare.py` to use `pydantic.Field` instead of `fastapi.Query` for request body fields, and ensured POST endpoints explicitly use `Body(...)` for the request model parameter. This resolves 400 and 422 errors.
 - Updated `client/src/contexts/ApiContext.js` to automatically include the stored API key in `analyzeTrends` and `compareNiches` requests.
+- Simplified API key retrieval in `analyzeTrends` and `compareNiches` functions within `client/src/contexts/ApiContext.js`. Both functions now consistently use the `getApiKey()` method and feature updated console logging for easier debugging of API key status during requests.
 
 ### Removed
 - Render deployment configuration (`server/render.yml`).
