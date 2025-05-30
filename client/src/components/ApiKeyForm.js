@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api, { apiService, saveApiKey, getApiKey, isApiKeyConfigured } from '../utils/api';
+import api, { apiService, saveApiKey, getApiKey, isApiKeyConfigured, removeApiKey } from '../utils/api';
 import { FaKey, FaCheckCircle, FaTimesCircle, FaTrash } from 'react-icons/fa';
 
 const ApiKeyForm = () => {
@@ -75,7 +75,7 @@ const ApiKeyForm = () => {
   // Function to clear the saved API key
   const handleClearApiKey = () => {
     // Remove API key from localStorage
-    localStorage.removeItem('youtrend_youtube_api_key');
+    removeApiKey();
     
     // Update state
     setIsConfigured(false);

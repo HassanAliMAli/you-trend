@@ -29,4 +29,9 @@
 - Investigated `HomePage.js` and found it uses helper functions from `client/src/utils/api.js` for its API key checks, independently of `ApiContext.js`.
 - **CRITICAL FINDING:** Inspected `client/src/utils/api.js` and discovered it was using a different `localStorage` key name (`youtrend_youtube_api_key`) than `ApiContext.js` (`youtube_api_key`). This explains the discrepancy.
 - Corrected `API_KEY_STORAGE_KEY` in `client/src/utils/api.js` to `youtube_api_key` to ensure consistency.
+- Updated `CHANGELOG.md`.
+- User provided a screenshot of an API key form and asked why the "Update API Key" button wasn't changing anything.
+- Identified that the screenshot matched `client/src/components/ApiKeyForm.js`.
+- Found that `ApiKeyForm.js`'s `handleClearApiKey` function (for the "Remove" button) was still using the old, incorrect `localStorage` key (`youtrend_youtube_api_key`).
+- Modified `handleClearApiKey` in `ApiKeyForm.js` to use the imported `removeApiKey` function from `utils/api.js`, ensuring it uses the correct, standardized key name.
 - Updated `CHANGELOG.md`. 
