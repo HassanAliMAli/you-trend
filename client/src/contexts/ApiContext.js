@@ -186,7 +186,7 @@ export const ApiProvider = ({ children }) => {
         // Add analysis metadata
         analysisMetadata: {
           queryDate: new Date().toISOString(),
-          trendDirection: response.data.topics.length > 0 ? 
+          trendDirection: (response.data.topics && Array.isArray(response.data.topics) && response.data.topics.length > 0) ? 
             (response.data.topics[0].count > 10 ? 'Strongly Upward' : 'Moderate') : 'Neutral',
           contentGap: identifyContentGap(response.data),
           recommendedActions: generateRecommendations(response.data)
@@ -213,6 +213,10 @@ export const ApiProvider = ({ children }) => {
 
   // Helper function to identify content gaps based on data
   const identifyContentGap = (data) => {
+    if (!data || !Array.isArray(data.topics) || !Array.isArray(data.videos)) {
+      console.warn('identifyContentGap: data.topics or data.videos is not an array or data is missing.');
+      return 'Could not determine content gap due to missing data.';
+    }
     // Find topics with high count but few videos
     const topTopics = data.topics.slice(0, 3).map(t => t.name);
     const videoTopics = data.videos
@@ -233,8 +237,13 @@ export const ApiProvider = ({ children }) => {
   // Helper function to generate recommendations based on data
   const generateRecommendations = (data) => {
     const recommendations = [];
+    if (!data || !Array.isArray(data.videos) || !Array.isArray(data.topics) || !Array.isArray(data.channels)) {
+      console.warn('generateRecommendations: data.videos, data.topics, or data.channels is not an array or data is missing.', { data });
+      return recommendations; 
+    }
     
     // Add recommendations based on video performance
+    console.log('ApiContext (generateRecommendations): Checking data.videos:', data.videos);
     if (data.videos.length > 0) {
       // Sort videos by views
       const sortedVideos = [...data.videos].sort((a, b) => 
@@ -256,6 +265,7 @@ export const ApiProvider = ({ children }) => {
     }
     
     // Add recommendation based on topics
+    console.log('ApiContext (generateRecommendations): Checking data.topics:', data.topics);
     if (data.topics.length > 0) {
       recommendations.push(`Create content around trending topic: ${data.topics[0].name}`);
     }
