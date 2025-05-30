@@ -44,4 +44,9 @@
 - User provided screenshots and Heroku logs showing the backend `/api/trends` call is now returning 200 OK with data.
 - The frontend Trends page now shows "No videos found matching your criteria" instead of the previous 'length' error.
 - Added a `console.log` for the raw `response.data` in `analyzeTrends` in `ApiContext.js` to inspect what the frontend receives before processing.
+- Updated `CHANGELOG.md`.
+- User provided new console logs and screenshots. API key is correctly sent, backend returns 200 OK.
+- Console log `ApiContext (analyzeTrends): Raw response.data: {status: 'success', message: '...', data: {…}}` revealed the actual video/topic data is nested under `response.data.data`.
+- Frontend helper functions `identifyContentGap` and `generateRecommendations` were failing because they were looking for `videos`, `topics` directly on `response.data` instead of `response.data.data`.
+- Modified `analyzeTrends` in `ApiContext.js` to correctly access and process data from `response.data.data`.
 - Updated `CHANGELOG.md`. 

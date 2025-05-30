@@ -171,26 +171,35 @@ export const ApiProvider = ({ children }) => {
       console.log('ApiContext: sending requestParams for trends:', requestParams);
       const response = await api.post('/api/trends', requestParams);
       console.log('ApiContext (analyzeTrends): Raw response.data:', response.data); // Log the raw response data
-      setQuotaUsage(response.data.quota_usage);
+
+      // IMPORTANT: Access the nested 'data' object from the backend response
+      const backendData = response.data.data || {}; // Use the nested 'data' or an empty object as fallback
+      const backendMessage = response.data.message || 'Data processed.';
+      const backendStatus = response.data.status || 'success';
+
+      setQuotaUsage(backendData.quota_usage); // Access quota_usage from backendData
       
       // Process the data to ensure all tabs are properly organized for exporting
       const processedData = {
-        // Original data
-        ...response.data,
+        // Spread properties from the nested backendData
+        ...backendData,
+        // Keep top-level status and message from the main response
+        status: backendStatus,
+        message: backendMessage,
         // Add explicit tab structure for better organization when exporting
         tabs: {
-          videos: response.data.videos || [],
-          channels: response.data.channels || [],
-          topics: response.data.topics || [],
-          ideas: response.data.ideas || []
+          videos: backendData.videos || [],
+          channels: backendData.channels || [],
+          topics: backendData.topics || [],
+          ideas: backendData.ideas || []
         },
         // Add analysis metadata
         analysisMetadata: {
           queryDate: new Date().toISOString(),
-          trendDirection: (response.data.topics && Array.isArray(response.data.topics) && response.data.topics.length > 0) ? 
-            (response.data.topics[0].count > 10 ? 'Strongly Upward' : 'Moderate') : 'Neutral',
-          contentGap: identifyContentGap(response.data),
-          recommendedActions: generateRecommendations(response.data)
+          trendDirection: (backendData.topics && Array.isArray(backendData.topics) && backendData.topics.length > 0) ? 
+            (backendData.topics[0].count > 10 ? 'Strongly Upward' : 'Moderate') : 'Neutral',
+          contentGap: identifyContentGap(backendData), // Pass backendData to helpers
+          recommendedActions: generateRecommendations(backendData) // Pass backendData to helpers
         }
       };
       
