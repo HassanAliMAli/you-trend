@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added logging to confirm the API key value immediately after it is set in `localStorage`.
 - Added logging in `client/src/pages/Settings.js` within `handleSaveSettings` to display the API key value being passed to `saveApiKey`.
 - Removed references to missing `logo192.png` and `logo512.png` from `client/public/manifest.json` to prevent console errors related to these icons.
+- Corrected a critical bug where `client/src/utils/api.js` (used by `HomePage.js`) and `client/src/contexts/ApiContext.js` (used by `Settings.js` and API calls) were using different `localStorage` key names (`youtrend_youtube_api_key` vs. `youtube_api_key`) for storing and retrieving the YouTube API key. Standardized to `youtube_api_key` across both files. This resolves inconsistencies in API key detection and usage.
 
 ## [0.1.0] - 2024-07-26
 ### Added

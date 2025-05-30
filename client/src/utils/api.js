@@ -23,7 +23,7 @@ const api = axios.create({
 });
 
 // Helper functions for YouTube API key management
-const API_KEY_STORAGE_KEY = 'youtrend_youtube_api_key';
+const API_KEY_STORAGE_KEY = 'youtube_api_key';
 
 // Save API key to localStorage
 export const saveApiKey = (apiKey) => {

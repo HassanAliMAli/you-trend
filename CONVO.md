@@ -24,4 +24,9 @@
 - Reviewed `ApiContext.js` and `Settings.js` for API key logic. The saving/loading logic appears sound.
 - Hypothesized that API key persistence issues might be due to browser extensions, specific browser settings, or subtle React state/lifecycle interactions, as the core code for `localStorage` is straightforward.
 - Simplified API key retrieval in `analyzeTrends` and `compareNiches` in `ApiContext.js` for consistency and updated logging.
+- Updated `CHANGELOG.md`.
+- User provided new console logs. `ApiContext.js` still reported `null` API key for trends analysis. However, `HomePage.js` (line 18) logged finding an old API key (`AIzaS...Lq2jo`) from `localStorage`.
+- Investigated `HomePage.js` and found it uses helper functions from `client/src/utils/api.js` for its API key checks, independently of `ApiContext.js`.
+- **CRITICAL FINDING:** Inspected `client/src/utils/api.js` and discovered it was using a different `localStorage` key name (`youtrend_youtube_api_key`) than `ApiContext.js` (`youtube_api_key`). This explains the discrepancy.
+- Corrected `API_KEY_STORAGE_KEY` in `client/src/utils/api.js` to `youtube_api_key` to ensure consistency.
 - Updated `CHANGELOG.md`. 
