@@ -170,6 +170,7 @@ export const ApiProvider = ({ children }) => {
     try {
       console.log('ApiContext: sending requestParams for trends:', requestParams);
       const response = await api.post('/api/trends', requestParams);
+      console.log('ApiContext (analyzeTrends): Raw response.data:', response.data); // Log the raw response data
       setQuotaUsage(response.data.quota_usage);
       
       // Process the data to ensure all tabs are properly organized for exporting

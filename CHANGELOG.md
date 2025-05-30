@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SQLite database files (`test.db`, `*.sqlite3`, etc.) to `.gitignore`.
 - Re-created `CONVO.md` to log conversation after rollback.
 - Added console logging in `client/src/contexts/ApiContext.js` to trace API key availability in `localStorage` upon component mount and during API calls to debug `400 Bad Request` errors.
+- Added a `console.log` in `client/src/contexts/ApiContext.js` within the `analyzeTrends` function to output the raw `response.data` received from the backend. This is to help diagnose why "No videos found" is displayed despite a 200 OK response from the `/api/trends` endpoint.
 
 ### Changed
 - Switched to unified Heroku deployment for frontend and backend.
