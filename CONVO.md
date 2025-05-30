@@ -14,4 +14,8 @@
 - Confirmed `ApiContext: Provider mounted. Initial API key from localStorage: null` is expected on first load.
 - Added `trim()` to `saveApiKey` in `ApiContext.js` and more detailed logging for the save process.
 - Added logging to `handleSaveSettings` in `Settings.js` to see the key value before saving.
-- Updated `CHANGELOG.md` with these logging and trim enhancements. 
+- Updated `CHANGELOG.md` with these logging and trim enhancements.
+- User provided console log showing `Error while trying to use the following icon from the Manifest: ...logo192.png`.
+- Identified that `logo192.png` and `logo512.png` are missing from `client/public` directory.
+- Removed references to the missing icons from `client/public/manifest.json` to resolve the console error.
+- Updated `CHANGELOG.md`. 
